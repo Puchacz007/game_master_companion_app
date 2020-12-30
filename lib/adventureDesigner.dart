@@ -1,0 +1,316 @@
+
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:game_master_companion_app/adventure.dart';
+
+
+
+class AdventureDesigner extends StatefulWidget {
+  AdventureDesigner({Key key, this.title}) : super(key: key);
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+
+  final String title;
+
+  @override
+  _AdventureDesignerState createState() => _AdventureDesignerState();
+
+}
+
+class _AdventureDesignerState extends State<AdventureDesigner> {
+
+  bool isSuccessful = false;
+  double _x,_y;
+  List <DynamicWidget> dynamicPlotPointsList =[];
+  Adventure adventure= Adventure();
+
+  void setImage(DraggableDetails dragDetails,double appBarHeight,double statusBarHeight,int index){
+
+
+    if(isSuccessful)
+      {
+        bool deleted=false;
+      print("start x = " + _x.toString() + "\nstart y = "+ _y.toString() );
+      setState(() {
+        _x = dragDetails.offset.dx;
+        _y = dragDetails.offset.dy-appBarHeight-statusBarHeight;
+        isSuccessful = false;
+      });
+      dynamicPlotPointsList.forEach((element) {
+        if(element.index == index) {
+          dynamicPlotPointsList.insert(index, new DynamicWidget(_x, _y, appBarHeight,statusBarHeight, setImage, index));
+          dynamicPlotPointsList.remove(element);
+          deleted = true;
+        }
+      });
+      if (deleted == false)
+      dynamicPlotPointsList.insert(index,new DynamicWidget(_x,_y,appBarHeight,statusBarHeight,setImage,index));
+      print("\nend y ="+ _x.toString() +"\nend x ="+ _y.toString());
+      }
+
+
+  }
+
+
+
+  AssetImage boxes =new AssetImage("assets/test.png") ;
+  @override
+  Widget build(BuildContext context) {
+    AppBar appBar = AppBar(
+      title: Text('Adventure Designer'),
+    );
+    /*
+    Widget dynamicTextField = new
+    ListView.builder(
+
+        itemCount: dynamicList.length,
+        itemBuilder: (_, index) => dynamicList[index],
+
+    );
+     */
+    Widget dynamicImage =
+
+    Image(
+            width: 100,
+            height: 100,
+            image: new AssetImage("assets/test.png")
+
+        );
+
+    return Scaffold(
+      appBar: appBar,
+
+      body:
+      Stack(
+
+              alignment: Alignment.topLeft,
+             children: <Widget>[
+
+               DragTarget<AssetImage>(
+
+                 builder: (context, List<AssetImage> candidateData, rejectedData) {
+
+                   return Container(
+
+                     color: Colors.yellow,
+
+
+                   );
+
+                 },
+                 onWillAccept: (data)  {
+                   print("onWillAccept");
+                   return true;
+                 },
+                 onLeave: (data)
+                 {
+                   print("onLeave");
+                 },
+                 onAccept: (data)  {
+                   print("onAccept");
+                   setState(() {
+                     isSuccessful=true;
+                   });
+                 },
+               ),
+
+
+
+
+
+               Container(
+                 width: 100,
+                 height: 1000,
+                 alignment: Alignment.topLeft,
+
+                 child: Drawer(
+                   child: Column(
+                     children: [
+                       SizedBox(height: 20,),
+
+                       Draggable<AssetImage>(
+
+                         data: boxes,
+
+                         child:Image.asset("assets/test.png",height:100 ,width:100),
+
+                         feedback: Image.asset("assets/test.png", height:100 , width:100),
+                         onDragEnd: (dragDetails) => setImage(dragDetails,appBar.preferredSize.height,MediaQuery.of(context).padding.top,dynamicPlotPointsList.length) ,
+
+                       ),
+
+
+                     ],
+                   ),
+                 ),
+
+               ),
+
+                    if(dynamicPlotPointsList.isNotEmpty)
+                      Stack(children: dynamicPlotPointsList,)
+
+
+
+
+             ],
+
+
+
+
+      ),
+
+
+      );
+  }
+
+
+
+
+}
+
+class DynamicWidget extends StatelessWidget {
+  final double _x,_y;
+  final Function setImageLocation;
+  final appBarHeight,statusBarHeight;
+  final int index;
+  DynamicWidget(this._x,this._y,this.appBarHeight,this.statusBarHeight,this.setImageLocation,this.index);
+
+  @override
+  Widget build(context) {
+    return
+        Positioned
+
+          (
+          left: _x,
+          top: _y,
+          child:
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+
+
+
+              Listener(
+
+
+          onPointerDown: (FrocePressDetails)
+          {
+            print("test2.3");
+          },
+          onPointerUp:(PointerUpEvent)
+          {
+
+            print("test2.4");
+          },
+
+                child: Container(
+                  padding: const EdgeInsets.all(0.0),
+                  width: 15,
+                  height: 15,
+                  //color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle
+                  ),
+                  child: IconButton(
+
+                    onPressed: () {
+                      print("test");
+
+                    },
+                    icon: Icon (Icons.radio_button_checked_sharp,),
+                    iconSize: 15,
+                    padding:const EdgeInsets.all(0.0) ,
+                  ),
+                ),
+
+
+              ),
+
+
+
+
+                Draggable<AssetImage>
+                  (
+
+                   data: AssetImage("assets/test.png"),
+
+                  child:Image.asset("assets/test.png",height:100,width:100),
+
+
+
+
+
+
+                   feedback: Image.asset("assets/test.png", height:100 , width:100),
+           onDragEnd: (dragDetails) => setImageLocation(dragDetails,appBarHeight,statusBarHeight,index) ,
+
+           /*
+         Image(
+        width: 100,
+        height: 100,
+        image: new AssetImage("assets/test.png")
+
+
+        ),
+        */
+                ),
+
+
+              GestureDetector(
+                onLongPress: ()
+                {
+                  print("test1.3");
+                },
+                onTapDown:( FrocePressDetails)
+                {
+                  print("test1.4");
+                },
+                child:Container(
+                  padding: const EdgeInsets.all(0.0),
+                 width: 15,
+                  height: 15,
+                  //color: Colors.red,
+                 alignment: Alignment.centerRight,
+                  decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle
+                  ),
+                 /*
+                 child: IconButton(
+                    //enableFeedback: false,
+                    onPressed: () {
+                      print("test");
+
+                    },
+                    icon: Icon (Icons.radio_button_unchecked_sharp,),
+                    iconSize: 15,
+                    padding:const EdgeInsets.all(0.0) ,
+                  ),*/
+                ),
+
+              ),
+
+              ],
+              ),
+        );
+
+
+
+
+
+  }
+
+}
+
