@@ -1,11 +1,9 @@
-
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:game_master_companion_app/adventure.dart';
-
-
 
 class AdventureDesigner extends StatefulWidget {
   AdventureDesigner({Key key, this.title}) : super(key: key);
@@ -18,245 +16,303 @@ class AdventureDesigner extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-
   final String title;
 
   @override
   _AdventureDesignerState createState() => _AdventureDesignerState();
+}
 
+class CurvePainter extends CustomPainter {
+  List<DynamicWidget> dynamicPlotPointsList;
+  Adventure adventure;
+
+  CurvePainter(List<DynamicWidget> dynamicPlotPointsList, Adventure adventure) {
+    this.dynamicPlotPointsList = dynamicPlotPointsList;
+    this.adventure = adventure;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint();
+    paint.color = Colors.black;
+    paint.strokeWidth = 5;
+
+    if (adventure.storyPoints.length >= 2) {
+      adventure.storyPoints.forEach((key, value) {
+        RenderBox renderBox1 = dynamicPlotPointsList[key]
+            ._outKey
+            .currentContext
+            .findRenderObject();
+
+        adventure.getConnections(key).forEach((element) {
+          RenderBox renderBox2 = dynamicPlotPointsList[element]
+              ._inKey
+              .currentContext
+              .findRenderObject();
+
+          canvas.drawLine(
+              Offset(renderBox1.localToGlobal(Offset.zero).dx,
+                  renderBox1.localToGlobal(Offset.zero).dy - 80),
+              Offset(renderBox2.localToGlobal(Offset.zero).dx,
+                  renderBox2.localToGlobal(Offset.zero).dy - 80),
+              paint);
+        });
+      });
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return true;
+  }
 }
 
 class _AdventureDesignerState extends State<AdventureDesigner> {
-
+  double x1, x2, y1, y2;
   bool isSuccessful = false;
-  double _x,_y;
-  List <DynamicWidget> dynamicPlotPointsList =[];
-  Adventure adventure= Adventure();
+  double _x, _y;
+  List<DynamicWidget> dynamicPlotPointsList = [];
+  Adventure adventure = Adventure();
 
-  void setImage(DraggableDetails dragDetails,double appBarHeight,double statusBarHeight,int index){
+  void connectPlotPoints() {}
 
-
-    if(isSuccessful)
-      {
-        bool deleted=false;
-      print("start x = " + _x.toString() + "\nstart y = "+ _y.toString() );
+  void setImage(DraggableDetails dragDetails, double appBarHeight,
+      double statusBarHeight, int index) {
+    if (isSuccessful) {
+      bool deleted = false;
+      print("start x = " + _x.toString() + "\nstart y = " + _y.toString());
       setState(() {
         _x = dragDetails.offset.dx;
-        _y = dragDetails.offset.dy-appBarHeight-statusBarHeight;
+        _y = dragDetails.offset.dy - appBarHeight - statusBarHeight;
         isSuccessful = false;
       });
       dynamicPlotPointsList.forEach((element) {
-        if(element.index == index) {
-          dynamicPlotPointsList.insert(index, new DynamicWidget(_x, _y, appBarHeight,statusBarHeight, setImage, index));
+        if (element.index == index) {
+          dynamicPlotPointsList.insert(
+              index,
+              new DynamicWidget(
+                  _x, _y, appBarHeight, statusBarHeight, setImage, index));
           dynamicPlotPointsList.remove(element);
+
           deleted = true;
         }
       });
       if (deleted == false)
-      dynamicPlotPointsList.insert(index,new DynamicWidget(_x,_y,appBarHeight,statusBarHeight,setImage,index));
-      print("\nend y ="+ _x.toString() +"\nend x ="+ _y.toString());
-      }
-
-
+        dynamicPlotPointsList.insert(
+            index,
+            new DynamicWidget(
+                _x, _y, appBarHeight, statusBarHeight, setImage, index));
+      print("\nend y =" + _x.toString() + "\nend x =" + _y.toString());
+      adventure.addStoryPoint(index);
+      if (dynamicPlotPointsList.length > 1)
+        adventure.addConnection(index - 1, index); //testowe
+    }
   }
 
+  AssetImage boxes = new AssetImage("assets/test.png");
 
-
-  AssetImage boxes =new AssetImage("assets/test.png") ;
   @override
   Widget build(BuildContext context) {
     AppBar appBar = AppBar(
       title: Text('Adventure Designer'),
     );
-    /*
-    Widget dynamicTextField = new
-    ListView.builder(
-
-        itemCount: dynamicList.length,
-        itemBuilder: (_, index) => dynamicList[index],
-
-    );
-     */
-    Widget dynamicImage =
-
-    Image(
-            width: 100,
-            height: 100,
-            image: new AssetImage("assets/test.png")
-
-        );
 
     return Scaffold(
       appBar: appBar,
+      body: Stack(
+        alignment: Alignment.topLeft,
+        children: <Widget>[
+          DragTarget<AssetImage>(
+            builder: (context, List<AssetImage> candidateData, rejectedData) {
+              return CustomPaint(
+                painter: CurvePainter(dynamicPlotPointsList, adventure),
+                child: Container(
 
-      body:
-      Stack(
+                    //color: Colors.yellow,
 
-              alignment: Alignment.topLeft,
-             children: <Widget>[
+                    ),
+              );
+            },
+            onWillAccept: (data) {
+              print("onWillAccept");
+              return true;
+            },
+            onLeave: (data) {
+              print("onLeave");
+            },
+            onAccept: (data) {
+              print("onAccept");
+              setState(() {
+                isSuccessful = true;
+              });
+            },
+          ),
+          Container(
+            width: 100,
+            height: 1000,
+            alignment: Alignment.topLeft,
+            child: Drawer(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Draggable<AssetImage>(
+                    data: boxes,
+                    child:
+                        Image.asset("assets/test.png", height: 100, width: 100),
+                    feedback:
+                        Image.asset("assets/test.png", height: 100, width: 100),
+                    onDragEnd: (dragDetails) => setImage(
+                        dragDetails,
+                        appBar.preferredSize.height,
+                        MediaQuery.of(context).padding.top,
+                        dynamicPlotPointsList.length),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    color: Colors.amberAccent,
+                    child: Text(
+                      'wieksze obrażenia od ognia , wrogie otoczenie , hałas zaalarmuje straż, ',
+                      textAlign: TextAlign.left,
 
-               DragTarget<AssetImage>(
-
-                 builder: (context, List<AssetImage> candidateData, rejectedData) {
-
-                   return Container(
-
-                     color: Colors.yellow,
-
-
-                   );
-
-                 },
-                 onWillAccept: (data)  {
-                   print("onWillAccept");
-                   return true;
-                 },
-                 onLeave: (data)
-                 {
-                   print("onLeave");
-                 },
-                 onAccept: (data)  {
-                   print("onAccept");
-                   setState(() {
-                     isSuccessful=true;
-                   });
-                 },
-               ),
-
-
-
-
-
-               Container(
-                 width: 100,
-                 height: 1000,
-                 alignment: Alignment.topLeft,
-
-                 child: Drawer(
-                   child: Column(
-                     children: [
-                       SizedBox(height: 20,),
-
-                       Draggable<AssetImage>(
-
-                         data: boxes,
-
-                         child:Image.asset("assets/test.png",height:100 ,width:100),
-
-                         feedback: Image.asset("assets/test.png", height:100 , width:100),
-                         onDragEnd: (dragDetails) => setImage(dragDetails,appBar.preferredSize.height,MediaQuery.of(context).padding.top,dynamicPlotPointsList.length) ,
-
-                       ),
-
-
-                     ],
-                   ),
-                 ),
-
-               ),
-
-                    if(dynamicPlotPointsList.isNotEmpty)
-                      Stack(children: dynamicPlotPointsList,)
-
-
-
-
-             ],
-
-
-
-
+                      //overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  SizedBox(
+                    // width: 100,
+                    // height: 40,
+                    child: RaisedButton(
+                      onPressed: () {},
+                      child: const Text('Generate NPC',
+                          style: TextStyle(fontSize: 15)),
+                      // padding:const EdgeInsets.all(0.0) ,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 5,
+                  ),
+                  Container(
+                    //  width: 100,
+                    //  height: 40,
+                    child: RaisedButton(
+                      onPressed: () {},
+                      child: const Text('Generate event',
+                          style: TextStyle(fontSize: 15)),
+                      //  padding:const EdgeInsets.all(0.0) ,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (dynamicPlotPointsList.isNotEmpty)
+            Stack(
+              children: dynamicPlotPointsList,
+            )
+        ],
       ),
-
-
-      );
+    );
   }
-
-
-
-
 }
 
 class DynamicWidget extends StatelessWidget {
-  final double _x,_y;
+  final double _x, _y;
   final Function setImageLocation;
-  final appBarHeight,statusBarHeight;
+  final appBarHeight, statusBarHeight;
   final int index;
-  DynamicWidget(this._x,this._y,this.appBarHeight,this.statusBarHeight,this.setImageLocation,this.index);
+  final GlobalKey _outKey = GlobalKey();
+  final GlobalKey _inKey = GlobalKey();
+
+  DynamicWidget(this._x, this._y, this.appBarHeight, this.statusBarHeight,
+      this.setImageLocation, this.index);
 
   @override
   Widget build(context) {
-    return
-        Positioned
-
-          (
-          left: _x,
-          top: _y,
-          child:
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-
-
-
-              Listener(
-
-
-          onPointerDown: (FrocePressDetails)
-          {
-            print("test2.3");
-          },
-          onPointerUp:(PointerUpEvent)
-          {
-
-            print("test2.4");
-          },
-
-                child: Container(
-                  padding: const EdgeInsets.all(0.0),
-                  width: 15,
-                  height: 15,
-                  //color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle
-                  ),
-                  child: IconButton(
-
-                    onPressed: () {
-                      print("test");
-
-                    },
-                    icon: Icon (Icons.radio_button_checked_sharp,),
-                    iconSize: 15,
-                    padding:const EdgeInsets.all(0.0) ,
-                  ),
+    return Positioned(
+      left: _x,
+      top: _y,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Listener(
+            onPointerDown: (FrocePressDetails) {
+              print("test2.3");
+            },
+            onPointerUp: (PointerUpEvent) {
+              print("test2.4");
+            },
+            child: Container(
+              padding: const EdgeInsets.all(0.0),
+              width: 15,
+              height: 15,
+              //color: Colors.red,
+              alignment: Alignment.centerRight,
+              decoration:
+                  BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              child: IconButton(
+                onPressed: () {
+                  print("test");
+                },
+                icon: Icon(
+                  Icons.radio_button_checked_sharp,
+                  key: _inKey,
                 ),
-
-
+                iconSize: 15,
+                padding: const EdgeInsets.all(0.0),
               ),
+            ),
+          ),
+          Draggable<AssetImage>(
+            data: AssetImage("assets/test.png"),
+            child: Stack(
+              children: [
+                Image.asset("assets/test.png", height: 100, width: 100),
+                Column(
+                  children: [
+                    /*
+                    TextField(
+                    decoration: InputDecoration(
+                    border: InputBorder.none,
+                   hintText: 'Enter a search term'
+                  ),
+                  ),
+                      TextField(
+                        decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Enter a search term'
+                        ),
+                      ),
+                      */
 
+                    SizedBox(
+                      width: 100,
+                      height: 30,
+                      child: RaisedButton(
+                        onPressed: () {},
+                        child:
+                            const Text('Npcs', style: TextStyle(fontSize: 20)),
+                        padding: const EdgeInsets.all(0.0),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                  ],
+                )
+              ],
+            ),
+            feedback: Image.asset("assets/test.png", height: 100, width: 100),
+            onDragEnd: (dragDetails) => setImageLocation(
+                dragDetails, appBarHeight, statusBarHeight, index),
 
-
-
-                Draggable<AssetImage>
-                  (
-
-                   data: AssetImage("assets/test.png"),
-
-                  child:Image.asset("assets/test.png",height:100,width:100),
-
-
-
-
-
-
-                   feedback: Image.asset("assets/test.png", height:100 , width:100),
-           onDragEnd: (dragDetails) => setImageLocation(dragDetails,appBarHeight,statusBarHeight,index) ,
-
-           /*
+            /*
          Image(
         width: 100,
         height: 100,
@@ -265,52 +321,42 @@ class DynamicWidget extends StatelessWidget {
 
         ),
         */
-                ),
+          ),
+          GestureDetector(
+            onLongPress: () {
+              print("test1.3");
+            },
+            onTapDown: (FrocePressDetails) {
+              print("test1.4");
+              //paint();
+            },
+            child: Container(
+              padding: const EdgeInsets.all(0.0),
 
+              width: 15,
+              height: 15,
+              //color: Colors.red,
+              alignment: Alignment.centerRight,
+              decoration:
+                  BoxDecoration(color: Colors.red, shape: BoxShape.circle),
 
-              GestureDetector(
-                onLongPress: ()
-                {
-                  print("test1.3");
+              child: IconButton(
+                //enableFeedback: false,
+                onPressed: () {
+                  print("test");
                 },
-                onTapDown:( FrocePressDetails)
-                {
-                  print("test1.4");
-                },
-                child:Container(
-                  padding: const EdgeInsets.all(0.0),
-                 width: 15,
-                  height: 15,
-                  //color: Colors.red,
-                 alignment: Alignment.centerRight,
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle
-                  ),
-                 /*
-                 child: IconButton(
-                    //enableFeedback: false,
-                    onPressed: () {
-                      print("test");
 
-                    },
-                    icon: Icon (Icons.radio_button_unchecked_sharp,),
-                    iconSize: 15,
-                    padding:const EdgeInsets.all(0.0) ,
-                  ),*/
+                icon: Icon(
+                  Icons.radio_button_unchecked_sharp,
+                  key: _outKey,
                 ),
-
+                iconSize: 15,
+                padding: const EdgeInsets.all(0.0),
               ),
-
-              ],
-              ),
-        );
-
-
-
-
-
+            ),
+          ),
+        ],
+      ),
+    );
   }
-
 }
-
