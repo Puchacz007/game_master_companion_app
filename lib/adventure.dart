@@ -46,7 +46,7 @@ class StoryPoint {
   String players;
   NPC npcs;
   Event events;
-  Set connections;
+  Set<int> connections = {};
 
   void setConnection(int connection) {
     connections.add(connection);
@@ -58,7 +58,6 @@ class StoryPoint {
 
   StoryPoint(int order) {
     storyOrder = order;
-    connections = Set();
     events = Event();
     npcs = NPC();
   }

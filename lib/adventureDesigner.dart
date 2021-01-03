@@ -22,14 +22,15 @@ class AdventureDesigner extends StatefulWidget {
   _AdventureDesignerState createState() => _AdventureDesignerState();
 }
 
-class CurvePainter extends CustomPainter {
+class LinePainter extends CustomPainter {
   List<DynamicWidget> dynamicPlotPointsList;
   Adventure adventure;
+  double appBarHeight;
+  double statusBarHeight;
+  Function getStatusBarHeight;
 
-  CurvePainter(List<DynamicWidget> dynamicPlotPointsList, Adventure adventure) {
-    this.dynamicPlotPointsList = dynamicPlotPointsList;
-    this.adventure = adventure;
-  }
+  LinePainter(this.dynamicPlotPointsList, this.adventure, this.appBarHeight,
+      this.getStatusBarHeight);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -38,6 +39,8 @@ class CurvePainter extends CustomPainter {
     paint.strokeWidth = 5;
 
     if (adventure.storyPoints.length >= 2) {
+      statusBarHeight = getStatusBarHeight();
+
       adventure.storyPoints.forEach((key, value) {
         RenderBox renderBox1 = dynamicPlotPointsList[key]
             ._outKey
@@ -51,10 +54,16 @@ class CurvePainter extends CustomPainter {
               .findRenderObject();
 
           canvas.drawLine(
-              Offset(renderBox1.localToGlobal(Offset.zero).dx,
-                  renderBox1.localToGlobal(Offset.zero).dy - 80),
-              Offset(renderBox2.localToGlobal(Offset.zero).dx,
-                  renderBox2.localToGlobal(Offset.zero).dy - 80),
+              Offset(
+                  renderBox1.localToGlobal(Offset.zero).dx,
+                  renderBox1.localToGlobal(Offset.zero).dy -
+                      statusBarHeight -
+                      appBarHeight),
+              Offset(
+                  renderBox2.localToGlobal(Offset.zero).dx,
+                  renderBox2.localToGlobal(Offset.zero).dy -
+                      statusBarHeight -
+                      appBarHeight),
               paint);
         });
       });
@@ -71,10 +80,24 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   double x1, x2, y1, y2;
   bool isSuccessful = false;
   double _x, _y;
+  int source;
   List<DynamicWidget> dynamicPlotPointsList = [];
   Adventure adventure = Adventure();
 
-  void connectPlotPoints() {}
+  double getStatusBarHeight() {
+    return MediaQuery.of(context).padding.top;
+  }
+
+  void connectPlotPoints(int target) {
+    if (source != null && source != target && target != null) {
+      adventure.addConnection(source, target);
+      source = null;
+    }
+  }
+
+  void setConnectionSource(int newSource) {
+    source = newSource;
+  }
 
   void setImage(DraggableDetails dragDetails, double appBarHeight,
       double statusBarHeight, int index) {
@@ -90,8 +113,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
         if (element.index == index) {
           dynamicPlotPointsList.insert(
               index,
-              new DynamicWidget(
-                  _x, _y, appBarHeight, statusBarHeight, setImage, index));
+              new DynamicWidget(_x, _y, appBarHeight, statusBarHeight, setImage,
+                  setConnectionSource, connectPlotPoints, index));
           dynamicPlotPointsList.remove(element);
 
           deleted = true;
@@ -100,12 +123,13 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       if (deleted == false)
         dynamicPlotPointsList.insert(
             index,
-            new DynamicWidget(
-                _x, _y, appBarHeight, statusBarHeight, setImage, index));
+            new DynamicWidget(_x, _y, appBarHeight, statusBarHeight, setImage,
+                setConnectionSource, connectPlotPoints, index));
       print("\nend y =" + _x.toString() + "\nend x =" + _y.toString());
       adventure.addStoryPoint(index);
-      if (dynamicPlotPointsList.length > 1)
-        adventure.addConnection(index - 1, index); //testowe
+
+      /*  if (dynamicPlotPointsList.length > 1)
+        adventure.addConnection(index - 1, index); //testowe*/
     }
   }
 
@@ -122,30 +146,45 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       body: Stack(
         alignment: Alignment.topLeft,
         children: <Widget>[
-          DragTarget<AssetImage>(
-            builder: (context, List<AssetImage> candidateData, rejectedData) {
-              return CustomPaint(
-                painter: CurvePainter(dynamicPlotPointsList, adventure),
-                child: Container(
+          GestureDetector(
+            onPanStart: (panStartDetails) {
+              print("panStart");
+            },
+            onPanEnd: (panEndDetails) {
+              print("panEnd");
+            },
+            onPanUpdate: (details) {
+              print("global dx =" +
+                  details.globalPosition.dx.toString() +
+                  "global dy=" +
+                  details.globalPosition.dy.toString());
+            },
+            child: DragTarget<AssetImage>(
+              builder: (context, List<AssetImage> candidateData, rejectedData) {
+                return CustomPaint(
+                  painter: LinePainter(dynamicPlotPointsList, adventure,
+                      appBar.preferredSize.height, getStatusBarHeight),
+                  child: Container(
 
-                    //color: Colors.yellow,
+                      //color: Colors.yellow,
 
-                    ),
-              );
-            },
-            onWillAccept: (data) {
-              print("onWillAccept");
-              return true;
-            },
-            onLeave: (data) {
-              print("onLeave");
-            },
-            onAccept: (data) {
-              print("onAccept");
-              setState(() {
-                isSuccessful = true;
-              });
-            },
+                      ),
+                );
+              },
+              onWillAccept: (data) {
+                print("onWillAccept");
+                return true;
+              },
+              onLeave: (data) {
+                print("onLeave");
+              },
+              onAccept: (data) {
+                print("onAccept");
+                setState(() {
+                  isSuccessful = true;
+                });
+              },
+            ),
           ),
           Container(
             width: 100,
@@ -224,14 +263,21 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
 
 class DynamicWidget extends StatelessWidget {
   final double _x, _y;
-  final Function setImageLocation;
+  final Function setImageLocation, setConnectionSource, connectPlotPoints;
   final appBarHeight, statusBarHeight;
   final int index;
   final GlobalKey _outKey = GlobalKey();
   final GlobalKey _inKey = GlobalKey();
 
-  DynamicWidget(this._x, this._y, this.appBarHeight, this.statusBarHeight,
-      this.setImageLocation, this.index);
+  DynamicWidget(
+      this._x,
+      this._y,
+      this.appBarHeight,
+      this.statusBarHeight,
+      this.setImageLocation,
+      this.setConnectionSource,
+      this.connectPlotPoints,
+      this.index);
 
   @override
   Widget build(context) {
@@ -241,25 +287,19 @@ class DynamicWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Listener(
-            onPointerDown: (FrocePressDetails) {
-              print("test2.3");
-            },
-            onPointerUp: (PointerUpEvent) {
-              print("test2.4");
-            },
-            child: Container(
-              padding: const EdgeInsets.all(0.0),
-              width: 15,
-              height: 15,
-              //color: Colors.red,
-              alignment: Alignment.centerRight,
-              decoration:
-                  BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              child: IconButton(
-                onPressed: () {
-                  print("test");
-                },
+          Container(
+            padding: const EdgeInsets.all(0.0),
+            width: 15,
+            height: 15,
+            //color: Colors.red,
+            alignment: Alignment.centerRight,
+            decoration:
+                BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            child: IconButton(
+              onPressed: () {
+                connectPlotPoints(index);
+                print("test");
+              },
                 icon: Icon(
                   Icons.radio_button_checked_sharp,
                   key: _inKey,
@@ -267,7 +307,6 @@ class DynamicWidget extends StatelessWidget {
                 iconSize: 15,
                 padding: const EdgeInsets.all(0.0),
               ),
-            ),
           ),
           Draggable<AssetImage>(
             data: AssetImage("assets/test.png"),
@@ -322,29 +361,22 @@ class DynamicWidget extends StatelessWidget {
         ),
         */
           ),
-          GestureDetector(
-            onLongPress: () {
-              print("test1.3");
-            },
-            onTapDown: (FrocePressDetails) {
-              print("test1.4");
-              //paint();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(0.0),
+          Container(
+            padding: const EdgeInsets.all(0.0),
 
-              width: 15,
-              height: 15,
-              //color: Colors.red,
-              alignment: Alignment.centerRight,
-              decoration:
-                  BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+            width: 15,
+            height: 15,
+            //color: Colors.red,
+            alignment: Alignment.centerRight,
+            decoration:
+                BoxDecoration(color: Colors.red, shape: BoxShape.circle),
 
-              child: IconButton(
-                //enableFeedback: false,
+            child: IconButton(
+              //enableFeedback: false,
                 onPressed: () {
-                  print("test");
-                },
+                  setConnectionSource(index);
+                print("test");
+              },
 
                 icon: Icon(
                   Icons.radio_button_unchecked_sharp,
@@ -354,7 +386,6 @@ class DynamicWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(0.0),
               ),
             ),
-          ),
         ],
       ),
     );
