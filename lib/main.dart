@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:game_master_companion_app/adventureDesigner.dart';
+import 'package:game_master_companion_app/adventureCustomizer.dart';
 
 void main() {
   runApp(MyApp());
@@ -47,21 +47,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -82,39 +67,52 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          SizedBox(height: 20,),
-          RaisedButton.icon(
-          onPressed: (){
-           Navigator.pushReplacement(
-             context,
-             MaterialPageRoute(builder: (context) => AdventureDesigner()),
-
-             
-           );
-          },
-          icon: Icon(
-          Icons.add_circle_rounded
-
-          ),
-          label: Text("Create New Adventure"),
-
-
-        ),
-         SizedBox(height: 10,),
-         RaisedButton.icon(
-          onPressed: (){
-          print("test");
-          },
-            icon: Icon(
-                Icons.drive_folder_upload
-
+            SizedBox(
+              height: 20,
             ),
-            label: Text("Load Adventure"),
-
-
-      ),
-
-    ],
+            RaisedButton.icon(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AdventureCustomizer(isCustom: true)),
+                );
+              },
+              icon: Icon(Icons.add_circle_rounded),
+              label: Text("Create New Custom Adventure"),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            RaisedButton.icon(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AdventureCustomizer(isCustom: false)),
+                );
+              },
+              icon: Icon(Icons.drive_folder_upload),
+              label: Text("Create New Adventure based on pattern"),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            RaisedButton.icon(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AdventureCustomizer(isCustom: false)),
+                );
+              },
+              icon: Icon(Icons.add_circle_rounded),
+              label: Text("Play adventure"),
+            ),
+          ],
         ),
         /*
         child: Column(
@@ -147,11 +145,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
            */
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

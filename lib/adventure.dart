@@ -1,8 +1,11 @@
 class Adventure {
   Map<int, StoryPoint> storyPoints;
+  Map<String, int> stats;
+  String pattern;
 
   Adventure() {
     storyPoints = new Map();
+    stats = new Map();
   }
 
   void addStoryPoint(int index) {
@@ -38,6 +41,10 @@ class Adventure {
   Set getConnections(int key) {
     return storyPoints[key].getConnections();
   }
+
+  void addStat(String name, int value) {
+    stats[name] = value;
+  }
 }
 
 class StoryPoint {
@@ -46,6 +53,7 @@ class StoryPoint {
   String players;
   NPC npcs;
   Event events;
+
   Set<int> connections = {};
 
   void setConnection(int connection) {
@@ -73,4 +81,22 @@ class NPC {
 
 class Event {
   bool isRandom;
+}
+
+class NpcGenerator {
+  Map<String, int> maxStat;
+  NPC npc;
+
+  NpcGenerator(Set<String> stats) {
+    maxStat = Map();
+    stats.forEach((stat) {
+      maxStat[stat] = 2;
+    });
+  }
+
+  NPC getNPC() {
+    return this.npc;
+  }
+
+  void generateNPC() {}
 }

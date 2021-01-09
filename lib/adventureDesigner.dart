@@ -6,7 +6,9 @@ import 'package:flutter/widgets.dart';
 import 'package:game_master_companion_app/adventure.dart';
 
 class AdventureDesigner extends StatefulWidget {
-  AdventureDesigner({Key key, this.title}) : super(key: key);
+  AdventureDesigner({Key key, this.title, @required this.adventure})
+      : super(key: key);
+
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -17,9 +19,10 @@ class AdventureDesigner extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  Adventure adventure;
 
   @override
-  _AdventureDesignerState createState() => _AdventureDesignerState();
+  _AdventureDesignerState createState() => _AdventureDesignerState(adventure);
 }
 
 class LinePainter extends CustomPainter {
@@ -82,7 +85,9 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   double _x, _y;
   int source;
   List<DynamicWidget> dynamicPlotPointsList = [];
-  Adventure adventure = Adventure();
+  Adventure adventure;
+
+  _AdventureDesignerState(this.adventure);
 
   double getStatusBarHeight() {
     return MediaQuery.of(context).padding.top;
