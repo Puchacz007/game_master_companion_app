@@ -4,10 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:game_master_companion_app/adventure.dart';
+import 'package:game_master_companion_app/eventGenerator.dart';
+
+import 'npcGenerator.dart';
 
 class AdventureDesigner extends StatefulWidget {
-  AdventureDesigner({Key key, this.title, @required this.adventure})
-      : super(key: key);
+  AdventureDesigner({Key key, @required this.adventure}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -18,8 +20,7 @@ class AdventureDesigner extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-  Adventure adventure;
+  final Adventure adventure;
 
   @override
   _AdventureDesignerState createState() => _AdventureDesignerState(adventure);
@@ -233,7 +234,14 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     // width: 100,
                     // height: 40,
                     child: RaisedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  NPCgeneratorPage(adventure: adventure)),
+                        );
+                      },
                       child: const Text('Generate NPC',
                           style: TextStyle(fontSize: 15)),
                       // padding:const EdgeInsets.all(0.0) ,
@@ -246,7 +254,14 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     //  width: 100,
                     //  height: 40,
                     child: RaisedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  EventGenerator(adventure: adventure)),
+                        );
+                      },
                       child: const Text('Generate event',
                           style: TextStyle(fontSize: 15)),
                       //  padding:const EdgeInsets.all(0.0) ,

@@ -5,8 +5,7 @@ import 'package:game_master_companion_app/adventure.dart';
 import 'package:game_master_companion_app/adventureDesigner.dart';
 
 class AdventureCustomizer extends StatefulWidget {
-  AdventureCustomizer({Key key, this.title, @required this.isCustom})
-      : super(key: key);
+  AdventureCustomizer({Key key, @required this.isCustom}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -17,7 +16,6 @@ class AdventureCustomizer extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
   final bool isCustom;
 
   @override
@@ -142,8 +140,8 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
 }
 
 class DynamicList extends StatelessWidget {
-  TextEditingController statValueController = new TextEditingController();
-  TextEditingController statNameController = new TextEditingController();
+  final TextEditingController statValueController = new TextEditingController();
+  final TextEditingController statNameController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +161,10 @@ class DynamicList extends StatelessWidget {
           maxLength: 22, // not working because flutter is bugged :P
           controller: statNameController,
 
-          decoration: new InputDecoration(hintText: 'Stat name'),
+          decoration: InputDecoration(
+            hintText: "Stat name",
+            counterText: "",
+          ),
         ),
       ),
       trailing: Container(
@@ -175,9 +176,12 @@ class DynamicList extends StatelessWidget {
           ],
           maxLength: 3,
           maxLengthEnforced: true,
+
           controller: statValueController,
           // textAlign: TextAlign.left ,
-          decoration: new InputDecoration(hintText: 'stat value'),
+          decoration: InputDecoration(
+            counterText: "",
+          ),
         ),
       ),
       // ),
