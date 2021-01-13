@@ -6,6 +6,7 @@ class Adventure {
   Map<int, StoryPoint> storyPoints;
   Map<String, int> maxStats;
   String pattern;
+  var events = <Event>[];
   var npcs = <NPC>[];
 
   Adventure() {
@@ -58,14 +59,19 @@ class Adventure {
   NPC getNPC(int index) {
     return npcs[index];
   }
+
+  Event getRandomEvent() {
+    var rng = new Random();
+    return events[rng.nextInt(events.length - 1)];
+  }
 }
 
 class StoryPoint {
+  String name;
   int storyOrder;
   String note;
   String players;
   var npcs = <NPC>[];
-  Event events;
   Map<String, int> stats;
   Set<int> connections = {};
 
@@ -87,7 +93,6 @@ class StoryPoint {
 
   StoryPoint(int order, this.stats) {
     storyOrder = order;
-    events = Event();
   }
 
   void setStoryOrder(int storyOrder) {
@@ -167,6 +172,24 @@ class NPC {
 }
 
 class Event {
-  bool isRandom;
+  String eventText;
+  String eventName;
 
+  Event();
+
+  void setEventName(String string) {
+    eventName = string;
+  }
+
+  void setEventText(String string) {
+    eventText = string;
+  }
+
+  String getEventText() {
+    return eventText;
+  }
+
+  String getEventName() {
+    return eventName;
+  }
 }
