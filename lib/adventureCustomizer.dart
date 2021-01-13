@@ -27,15 +27,20 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
   List<DynamicList> dynamicStatsWidgetList = [];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text("AdventureCustomizer"),
@@ -45,7 +50,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
           // in the middle of the parent.
 
           child: Builder(builder: (context) {
-        if (true) {
+            if (widget.isCustom) {
           return //Custom Adventure
 
               Container(
@@ -78,7 +83,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                       adventure.addStat(statWidget.statNameController.text,
                           int.parse(statWidget.statValueController.text));
                     });
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
@@ -110,7 +115,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                 ),
                 RaisedButton.icon(
                   onPressed: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => AdventureDesigner()),

@@ -144,6 +144,10 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   @override
   Widget build(BuildContext context) {
     AppBar appBar = AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.black),
+        onPressed: () => Navigator.pop(context),
+      ),
       title: Text('Adventure Designer'),
     );
 
@@ -235,7 +239,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     // height: 40,
                     child: RaisedButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
@@ -255,7 +259,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     //  height: 40,
                     child: RaisedButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>

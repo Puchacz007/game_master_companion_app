@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             RaisedButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
@@ -87,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             RaisedButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             RaisedButton.icon(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
