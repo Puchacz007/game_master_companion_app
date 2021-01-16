@@ -74,8 +74,8 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                         itemBuilder: (_, index) =>
                             dynamicStatsWidgetList[index])),
                 RaisedButton.icon(
-                  onPressed: () {
-                    Adventure adventure = new Adventure();
+                  onPressed: () async {
+                    Adventure adventure = new Adventure.init();
                     dynamicStatsWidgetList.forEach((statWidget) {
                       print(statWidget.statNameController.text +
                           " " +

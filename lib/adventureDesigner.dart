@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:game_master_companion_app/adventure.dart';
 import 'package:game_master_companion_app/eventGenerator.dart';
 
+import 'DBProvider.dart';
 import 'npcGenerator.dart';
 
 class AdventureDesigner extends StatefulWidget {
@@ -270,6 +271,64 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                           style: TextStyle(fontSize: 15)),
                       //  padding:const EdgeInsets.all(0.0) ,
                     ),
+                  ),
+                  RaisedButton(
+                    onPressed: () async {
+                      adventure
+                          .setID(await DBProvider.db.getMaxAdventureID() + 1);
+                      await DBProvider.db.addData(adventure);
+
+                      int newStoryPointID =
+                          await DBProvider.db.getMaxStoryID() + 1;
+                      int newNpcID = await DBProvider.db.getMaxNPCID() + 1;
+                      List<NPC> newNPCS = [];
+
+                      adventure.npcs.forEach((npc) async {
+                        if (npc.getID() == null) {
+                          npc.setAdventureID(adventure.getID());
+                          newNPCS.add(npc);
+                          //  npc.setID(newNpcID);
+                          //  ++newNpcID;
+                          //    await DBProvider.db.addData(npc);
+                        }
+                      });
+
+                      adventure.storyPoints.values.forEach((storyPoint) async {
+                        if (storyPoint.getID() == null) {
+                          storyPoint.setAdventureID(adventure.getID());
+                          storyPoint.setID(newStoryPointID);
+                          ++newStoryPointID;
+                          await DBProvider.db.addData(storyPoint);
+                        }
+                      });
+                      adventure.storyPoints.values.forEach((storyPoint) async {
+                        storyPoint.npcs.forEach((npc) async {
+                          if (npc.getID() == null) {
+                            npc.setAdventureID(adventure.getID());
+                            npc.setStoryPointID(storyPoint.getStoryPointId());
+                            // npc.setID(newNpcID);
+                            //++newNpcID;
+                            // await DBProvider.db.addData(npc);
+                            newNPCS.add(npc);
+                          }
+                        });
+                      });
+
+                      newNPCS.forEach((npc) async {
+                        if (npc.getID() == null) {
+                          npc.setID(newNpcID);
+                          ++newNpcID;
+                          await DBProvider.db.addData(npc);
+                        }
+                      });
+
+                      adventure.events.forEach((event) async {
+                        event.setAdventureID(adventure.getID());
+                        await DBProvider.db.addData(event);
+                      });
+                    },
+                    child: const Text('Save', style: TextStyle(fontSize: 15)),
+                    //  padding:const EdgeInsets.all(0.0) ,
                   ),
                 ],
               ),

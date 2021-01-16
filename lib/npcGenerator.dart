@@ -173,8 +173,9 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
                   isNPCGenerated = true;
                 });
 
-                npcs.add(NPC(adventure.maxStats, priorityStats));
-                npcs[npcs.length - 1].generate(dropdownGenType,
+                npcs.add(NPC());
+                npcs[npcs.length - 1].generate(
+                    dropdownGenType, adventure.maxStats, priorityStats,
                     skillPointsNumber: int.parse(skillPointsNumber.value.text));
                 addDynamicStatTextField();
                 //  adventure.getNPC(adventure.npcs.length-1).generate(dropdownGenType,skillPointsNumber:int.parse(skillPointsNumber.value.text));

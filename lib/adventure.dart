@@ -1,26 +1,61 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:game_master_companion_app/strings.dart';
 
 class Adventure {
+  String name;
+  int id;
   Map<int, StoryPoint> storyPoints;
-  Map<String, int> maxStats;
+  Map<String, int> maxStats; //TODO
   String pattern;
   var events = <Event>[];
   var npcs = <NPC>[];
 
-  Adventure() {
+  Adventure({this.id, this.name, this.maxStats});
+
+  Adventure.init() {
     storyPoints = new Map();
     maxStats = new Map();
   }
 
-  void addStoryPoint(int index) {
-    if (!storyPoints.containsKey(index))
-      storyPoints[index] = new StoryPoint(index, maxStats);
+  factory Adventure.fromMap(Map<String, dynamic> json) => Adventure(
+        id: json["id"],
+        name: json["name"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "name": name,
+      };
+
+  Adventure storyPointFromJson(String str) {
+    final jsonData = json.decode(str);
+    return Adventure.fromMap(jsonData);
+  }
+
+  String storyPointToJson(Adventure data) {
+    final dyn = data.toMap();
+    return json.encode(dyn);
+  }
+
+  void setID(int id) {
+    if (this.id == null) this.id = id;
+  }
+
+  void addStoryPoint(int index) async {
+    if (!storyPoints.containsKey(index)) {
+      storyPoints[index] = new StoryPoint();
+    }
+    storyPoints[index].setStoryOrder(index);
   }
 
   void removeStoryPoint(int key) {
     storyPoints.remove(key);
+  }
+
+  int getID() {
+    return id;
   }
 
   void editStoryPointPlayers(int key, String players) {
@@ -67,13 +102,58 @@ class Adventure {
 }
 
 class StoryPoint {
+  int id;
+  int adventureID;
   String name;
   int storyOrder;
   String note;
   String players;
   var npcs = <NPC>[];
-  Map<String, int> stats;
-  Set<int> connections = {};
+  Set<int> connections = {}; //TODO
+
+  StoryPoint(
+      {this.id,
+      this.storyOrder,
+      this.adventureID,
+      this.name,
+      this.note,
+      this.players});
+
+  factory StoryPoint.fromMap(Map<String, dynamic> json) => StoryPoint(
+        id: json["id"],
+        storyOrder: json["storyOrder"],
+        adventureID: json["adventureID"],
+        name: json["name"],
+        note: json[" note"],
+        players: json["players"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "storyOrder": storyOrder,
+        "adventureID": adventureID,
+        "name": name,
+        "note": note,
+        "players": players,
+      };
+
+  StoryPoint storyPointFromJson(String str) {
+    final jsonData = json.decode(str);
+    return StoryPoint.fromMap(jsonData);
+  }
+
+  String storyPointToJson(StoryPoint data) {
+    final dyn = data.toMap();
+    return json.encode(dyn);
+  }
+
+  int getID() {
+    return id;
+  }
+
+  void setID(int id) {
+    if (this.id == null) this.id = id;
+  }
 
   void addNPC(NPC npc) {
     npcs.add(npc);
@@ -91,29 +171,91 @@ class StoryPoint {
     return connections;
   }
 
+/*
   StoryPoint(int order, this.stats) {
     storyOrder = order;
   }
-
+*/
   void setStoryOrder(int storyOrder) {
     this.storyOrder = storyOrder;
+  }
+
+  int getStoryPointId() {
+    return id;
+  }
+
+  void setAdventureID(int id) {
+    this.adventureID = id;
   }
 }
 
 class NPC {
   bool isImportant;
+  int id, adventureID, storyPointID;
+  String name;
 
-  Map<String, int> maxStats;
-  Map<String, bool> priorityStats;
-  Map<String, int> stats;
-
+  //Map<String, int> maxStats;
+  // Map<String, bool> priorityStats;
+  Map<String, int> stats; //TODO
+/*
   NPC(this.maxStats, this.priorityStats) {
     stats = Map();
+  }
+*/
+  NPC(
+      {this.id,
+      this.storyPointID,
+      this.adventureID,
+      this.name,
+      this.isImportant});
+
+  factory NPC.fromMap(Map<String, dynamic> json) => NPC(
+      id: json["id"],
+      storyPointID: json["storyPointID"],
+      adventureID: json["adventureID"],
+      name: json["name"],
+      isImportant: json["isImportant"]);
+
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "storyPointID": storyPointID,
+        "adventureID": adventureID,
+        "name": name,
+        "isImportant": isImportant
+      };
+
+  StoryPoint storyPointFromJson(String str) {
+    final jsonData = json.decode(str);
+    return StoryPoint.fromMap(jsonData);
+  }
+
+  String storyPointToJson(StoryPoint data) {
+    final dyn = data.toMap();
+    return json.encode(dyn);
+  }
+
+  int getID() {
+    return id;
+  }
+
+  void setID(int id) {
+    if (this.id == null) this.id = id;
+  }
+
+  void setStoryPointID(int id) {
+    this.storyPointID = id;
+  }
+
+  void setAdventureID(int id) {
+    this.adventureID = id;
   }
 
   bool setImportance(bool value) => isImportant = value;
 
-  void generate(String generationType, {int skillPointsNumber = 0}) {
+  void generate(String generationType, Map<String, int> maxStats,
+      Map<String, bool> priorityStats,
+      {int skillPointsNumber = 0}) {
+    stats = Map();
     var rng = new Random();
 
     for (var i in maxStats.keys) {
@@ -168,28 +310,54 @@ class NPC {
         }
       });
     }
+    void changeStat(String name, int value) {
+      stats[name] = value;
+    }
   }
 }
 
 class Event {
-  String eventText;
-  String eventName;
+  String description;
+  String name;
+  int adventureID;
 
-  Event();
+  Event({this.name, this.description, this.adventureID});
+
+  factory Event.fromMap(Map<String, dynamic> json) => Event(
+      name: json["name"],
+      description: json["description"],
+      adventureID: json[" adventureID"]);
+
+  Map<String, dynamic> toMap() =>
+      {"name": name, "description": description, " adventureID": adventureID};
+
+  Event eventFromJson(String str) {
+    final jsonData = json.decode(str);
+    return Event.fromMap(jsonData);
+  }
+
+  String eventToJson(Event data) {
+    final dyn = data.toMap();
+    return json.encode(dyn);
+  }
 
   void setEventName(String string) {
-    eventName = string;
+    name = string;
+  }
+
+  void setAdventureID(int id) {
+    this.adventureID = id;
   }
 
   void setEventText(String string) {
-    eventText = string;
+    description = string;
   }
 
   String getEventText() {
-    return eventText;
+    return description;
   }
 
   String getEventName() {
-    return eventName;
+    return name;
   }
 }

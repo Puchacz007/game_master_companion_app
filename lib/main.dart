@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game_master_companion_app/AdventureLoader.dart';
 import 'package:game_master_companion_app/adventureCustomizer.dart';
 
 void main() {
@@ -98,6 +99,20 @@ class _MyHomePageState extends State<MyHomePage> {
               label: Text("Create New Adventure based on pattern"),
             ),
             SizedBox(
+              height: 10,
+            ),
+            RaisedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AdventureLoader(isEditable: true)),
+                );
+              },
+              icon: Icon(Icons.edit),
+              label: Text("Edit Adventure"),
+            ),
+            SizedBox(
               height: 20,
             ),
             RaisedButton.icon(
@@ -105,8 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          AdventureCustomizer(isCustom: false)),
+                      builder: (context) => AdventureLoader(isEditable: false)),
                 );
               },
               icon: Icon(Icons.add_circle_rounded),
