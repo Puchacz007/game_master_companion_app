@@ -301,8 +301,6 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         adventure
                             .setID(await DBProvider.db.getMaxAdventureID() + 1);
                         await DBProvider.db.addData(adventure);
-                        await DBProvider.db.addMaxStats(
-                            adventure.maxStats, adventure.getID().toString());
                       }
 
                       int newStoryPointID =

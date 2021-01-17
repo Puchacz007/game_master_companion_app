@@ -57,9 +57,9 @@ class DBProvider {
           ")");
       await db.execute("CREATE TABLE STATS ("
           "name TEXT,"
-          "value INTEGER,"
           "NPCID INTEGER,"
           "adventureID INTEGER,"
+          "value INTEGER,"
           "CONSTRAINT STATS_PK PRIMARY KEY(name,adventureID,NPCID)"
           ")");
       await db.execute("CREATE TABLE MAX_STATS ("
@@ -70,9 +70,9 @@ class DBProvider {
           ")");
       await db.execute("CREATE TABLE CONNECTIONS ("
           "ID INTEGER,"
-          "TARGET_ID INTEGER,"
+          "targetID INTEGER,"
           "adventureID INTEGER,"
-          "CONSTRAINT MAX_STATS_PK PRIMARY KEY(ID,TARGET_ID)"
+          "CONSTRAINT CONNECTIONS_PK PRIMARY KEY(ID,targetID,adventureID)"
           ")");
     });
   }
@@ -84,11 +84,15 @@ class DBProvider {
     if (data is Adventure) {
       name = "Adventure";
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
+      await DBProvider.db.addMaxStats(data.maxStats, data.getID());
     } else if (data is StoryPoint) {
       name = "StoryPoint";
       //  result =await db.query(name, where: "id = ?", whereArgs: [data.id]);
+      await DBProvider.db
+          .addConnections(data.connections, data.id, data.adventureID);
     } else if (data is NPC) {
       name = "NPC";
+      await DBProvider.db.addStats(data.stats, data.getID(), data.adventureID);
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is Event) {
       name = "Event";
@@ -100,14 +104,59 @@ class DBProvider {
     //  }
   }
 
-  addMaxStats(Map<String, int> data, String adventureID) async {
+  addMaxStats(Map<String, int> data, int adventureID) async {
     final db = await database;
     data.forEach((name, value) async {
-      String valueString = value.toString();
       await db.rawInsert(
-          "Insert Into MAX_STATS ( name , adventureID , value ) Values($name,$adventureID,$valueString);");
+          'Insert Into MAX_STATS ( name , adventureID , value ) Values("$name",$adventureID,$value);');
     });
   }
+
+  updateMaxStats(Map<String, int> data, int adventureID) async {
+    final db = await database;
+    data.forEach((name, value) async {
+      await db.rawInsert(
+          'Update MAX_STATS SET value = $value WHERE name = $name AND adventureID = $adventureID;');
+    });
+  }
+
+  addStats(Map<String, int> data, int npcID, int adventureID) async {
+    final db = await database;
+    data.forEach((name, value) async {
+      await db.rawInsert(
+          'Insert Into STATS ( name ,NPCID,adventureID, value ) Values("$name",$npcID,$adventureID,$value);');
+    });
+  }
+
+  updateStats(Map<String, int> data, int npcID, int adventureID) async {
+    final db = await database;
+    data.forEach((name, value) async {
+      await db.rawUpdate(
+          'Update STATS SET value = ? WHERE name = ? AND NPCID = ? AND adventureID = ?',
+          ['$value', '$name', '$npcID', '$adventureID']);
+    });
+  }
+
+  addConnections(Set<int> data, int id, int adventureID) async {
+    final db = await database;
+    for (int i = 0; i < data.length; ++i) {
+      var targetID = data.elementAt(i);
+      await db.rawInsert(
+          'Insert Into CONNECTIONS ( ID,targetID,adventureID) Values($id,$targetID,$adventureID);');
+    }
+  }
+
+  updateConnections(Set<int> data, int id, int adventureID) async {
+    final db = await database;
+    for (int i = 0; i < data.length; ++i) {
+      var targetID = data.elementAt(i);
+      await db.rawUpdate(
+          'Update CONNECTIONS SET targetID = ? WHERE ID = ? AND adventureID = ?',
+          ['$targetID', '$id', '$adventureID']);
+    }
+  }
+
+  getConnections() {}
 
   updateData(var data) async {
     final db = await database;
@@ -117,9 +166,13 @@ class DBProvider {
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is StoryPoint) {
       name = "StoryPoint";
+      await DBProvider.db
+          .updateConnections(data.connections, data.id, data.adventureID);
       //  result =await db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is NPC) {
       name = "NPC";
+      await DBProvider.db
+          .updateStats(data.stats, data.getID(), data.adventureID);
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is Event) {
       name = "Event";
@@ -148,7 +201,6 @@ class DBProvider {
         res.isNotEmpty ? res.map((c) => Adventure.fromMap(c)).toList() : [];
     return list.first.id != null ? list.first.id : -1;
   }
-
   getMaxNPCID() async {
     final db = await database;
     var res = await db.rawQuery("SELECT MAX(id) as id FROM NPC");
@@ -178,6 +230,14 @@ class DBProvider {
         .query("NPC", where: "adventureID = ?", whereArgs: [adventureID]);
     List<NPC> list =
         res.isNotEmpty ? res.map((c) => NPC.fromMap(c)).toList() : [];
+
+    for (int i = 0; i < list.length; ++i) //TODO
+    {
+      int npcID = list[i].getID();
+      var resMap = await db.rawQuery(
+          "SELECT NAME,VALUE FROM STATS WHERE npcID=$npcID AND adventureID = $adventureID");
+      list[i].stats = new Map();
+    }
     return list;
   }
 

@@ -29,7 +29,6 @@ class Adventure {
         "id": id,
         "name": name,
       };
-
   Adventure storyPointFromJson(String str) {
     final jsonData = json.decode(str);
     return Adventure.fromMap(jsonData);
@@ -101,6 +100,7 @@ class Adventure {
         storyPointID: npc.storyPointID,
         adventureID: npc.adventureID,
         isImportant: npc.isImportant);
+    newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
   }
 
@@ -223,10 +223,12 @@ class StoryPoint {
   }
   void addNPC(NPC npc) {
     NPC newNPC = NPC(
-        name: npc.name,
-        storyPointID: npc.storyPointID,
-        adventureID: npc.adventureID,
-        isImportant: npc.isImportant);
+      name: npc.name,
+      storyPointID: npc.storyPointID,
+      adventureID: npc.adventureID,
+      isImportant: npc.isImportant,
+    );
+    newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
   }
 
@@ -264,9 +266,11 @@ class NPC {
   bool isImportant;
   int id, adventureID, storyPointID;
   String name;
+
   //Map<String, int> maxStats;
   // Map<String, bool> priorityStats;
-  Map<String, int> stats; //TODO
+  Map<String, int> stats = new Map();
+
 /*
   NPC(this.maxStats, this.priorityStats) {
     stats = Map();
