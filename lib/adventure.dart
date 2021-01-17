@@ -14,9 +14,10 @@ class Adventure {
 
   Adventure({this.id, this.name, this.maxStats});
 
-  Adventure.init() {
+  Adventure.init(String adventureName) {
     storyPoints = new Map();
     maxStats = new Map();
+    name = adventureName;
   }
 
   factory Adventure.fromMap(Map<String, dynamic> json) => Adventure(
@@ -43,9 +44,12 @@ class Adventure {
     if (this.id == null) this.id = id;
   }
 
-  void addStoryPoint(int index) async {
+  void addNewStoryPoint(int index, double x, double y) async {
     if (!storyPoints.containsKey(index)) {
-      storyPoints[index] = new StoryPoint();
+      storyPoints[index] = new StoryPoint.init(x, y);
+    } else {
+      storyPoints[index].setX(x);
+      storyPoints[index].setY(y);
     }
     storyPoints[index].setStoryOrder(index);
   }
@@ -79,6 +83,10 @@ class Adventure {
     storyPoints[key].setConnection(connection);
   }
 
+  Map<int, StoryPoint> getStoryPoints() {
+    return storyPoints;
+  }
+
   Set getConnections(int key) {
     return storyPoints[key].getStoryPointConnections();
   }
@@ -88,7 +96,12 @@ class Adventure {
   }
 
   void addNPC(NPC npc) {
-    npcs.add(npc);
+    NPC newNPC = NPC(
+        name: npc.name,
+        storyPointID: npc.storyPointID,
+        adventureID: npc.adventureID,
+        isImportant: npc.isImportant);
+    npcs.add(newNPC);
   }
 
   NPC getNPC(int index) {
@@ -98,6 +111,31 @@ class Adventure {
   Event getRandomEvent() {
     var rng = new Random();
     return events[rng.nextInt(events.length - 1)];
+  }
+
+  void addAllEvents(List<Event> events) {
+    this.events.addAll(events);
+  }
+
+  addAllStoryPoints(List<StoryPoint> storyPoints) {
+    this.storyPoints = new Map();
+    for (int i = 0; i < storyPoints.length; ++i) {
+      addStoryPoint(storyPoints[i]);
+    }
+  }
+
+  void addAllNPCs(List<NPC> npcs) {
+    npcs.forEach((npc) {
+      if (npc.storyPointID == null)
+        this.npcs.add(npc);
+      else
+        this.storyPoints[npc.storyPointID].addNPC(npc);
+    });
+  }
+
+  void addStoryPoint(StoryPoint storyPoint) {
+    storyPoints[storyPoints.length] = storyPoint;
+    //StoryPoint(id: storyPoint.id ,adventureID: storyPoint.adventureID,storyOrder: storyPoint.storyOrder,name: storyPoint.name)
   }
 }
 
@@ -110,6 +148,28 @@ class StoryPoint {
   String players;
   var npcs = <NPC>[];
   Set<int> connections = {}; //TODO
+  double x, y;
+
+  StoryPoint.init(double x, double y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  double getX() {
+    return x;
+  }
+
+  double getY() {
+    return y;
+  }
+
+  void setX(double x) {
+    this.x = x;
+  }
+
+  void setY(double y) {
+    this.y = y;
+  }
 
   StoryPoint(
       {this.id,
@@ -117,24 +177,31 @@ class StoryPoint {
       this.adventureID,
       this.name,
       this.note,
-      this.players});
+      this.players,
+      this.x,
+      this.y});
 
   factory StoryPoint.fromMap(Map<String, dynamic> json) => StoryPoint(
-        id: json["id"],
+    id: json["id"],
         storyOrder: json["storyOrder"],
         adventureID: json["adventureID"],
         name: json["name"],
         note: json[" note"],
         players: json["players"],
+        x: json["x"],
+        y: json["y"],
       );
 
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>
+      {
         "id": id,
         "storyOrder": storyOrder,
         "adventureID": adventureID,
         "name": name,
         "note": note,
         "players": players,
+        "x": x,
+        "y": y,
       };
 
   StoryPoint storyPointFromJson(String str) {
@@ -154,9 +221,13 @@ class StoryPoint {
   void setID(int id) {
     if (this.id == null) this.id = id;
   }
-
   void addNPC(NPC npc) {
-    npcs.add(npc);
+    NPC newNPC = NPC(
+        name: npc.name,
+        storyPointID: npc.storyPointID,
+        adventureID: npc.adventureID,
+        isImportant: npc.isImportant);
+    npcs.add(newNPC);
   }
 
   NPC getNPC(int index) {
@@ -193,7 +264,6 @@ class NPC {
   bool isImportant;
   int id, adventureID, storyPointID;
   String name;
-
   //Map<String, int> maxStats;
   // Map<String, bool> priorityStats;
   Map<String, int> stats; //TODO

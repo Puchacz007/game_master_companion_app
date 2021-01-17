@@ -25,6 +25,12 @@ class AdventureCustomizer extends StatefulWidget {
 class _AdventureCustomizerState extends State<AdventureCustomizer> {
   // _AdventureCustomizerState ({Key key, @required this.isCustom}) : super(key: key);
   List<DynamicList> dynamicStatsWidgetList = [];
+  final TextEditingController adventureNameController =
+      new TextEditingController();
+
+  _AdventureCustomizerState() {
+    dynamicStatsWidgetList.add(DynamicList());
+  }
 
   @override
   Widget build(context) {
@@ -59,6 +65,23 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
               children: <Widget>[
                 // SizedBox(height: 20,width: 20,),
 
+                Container(
+                  width: 200,
+                  // height: 21,
+                  child: TextField(
+                    // keyboardType: TextInputType.name,
+                    // maxLength: 3,
+                    // maxLengthEnforced: true,
+                    maxLengthEnforced: true,
+                    maxLength: 22, // not working because flutter is bugged :P
+                    controller: adventureNameController,
+                    decoration: InputDecoration(
+                      hintText: "Adventure name",
+                      counterText: "",
+                    ),
+                  ),
+                ),
+
                 Text(
                     "Write down each character stat used in this adventure by characters",
                     textAlign: TextAlign.center),
@@ -74,21 +97,43 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                         itemBuilder: (_, index) =>
                             dynamicStatsWidgetList[index])),
                 RaisedButton.icon(
-                  onPressed: () async {
-                    Adventure adventure = new Adventure.init();
-                    dynamicStatsWidgetList.forEach((statWidget) {
-                      print(statWidget.statNameController.text +
-                          " " +
-                          statWidget.statValueController.text);
-                      adventure.addStat(statWidget.statNameController.text,
-                          int.parse(statWidget.statValueController.text));
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              AdventureDesigner(adventure: adventure)),
-                    );
+                  onPressed: () {
+                    if (adventureNameController.text.isNotEmpty) {
+                      Adventure adventure =
+                          new Adventure.init(adventureNameController.text);
+                      bool areStatsGood = true;
+                      for (int i = 0; i < dynamicStatsWidgetList.length; ++i) {
+                        print(dynamicStatsWidgetList[i]
+                                .statNameController
+                                .text +
+                            " " +
+                            dynamicStatsWidgetList[i].statValueController.text);
+                        if (dynamicStatsWidgetList[i]
+                                .statNameController
+                                .text
+                                .isEmpty ||
+                            dynamicStatsWidgetList[i]
+                                .statValueController
+                                .text
+                                .isEmpty) {
+                          areStatsGood = false;
+                          break;
+                        }
+                        adventure.addStat(
+                            dynamicStatsWidgetList[i].statNameController.text,
+                            int.parse(dynamicStatsWidgetList[i]
+                                .statValueController
+                                .text));
+                      }
+                      if (areStatsGood) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  AdventureDesigner(adventure: adventure)),
+                        );
+                      }
+                    }
                   },
                   icon: Icon(Icons.add_circle_rounded),
                   label: Text("Create Adventure"),
@@ -160,18 +205,20 @@ class DynamicList extends StatelessWidget {
         // height: 21,
         child: TextField(
           // keyboardType: TextInputType.name,
-          // maxLength: 3,
+          //maxLength: 3,
           // maxLengthEnforced: true,
           maxLengthEnforced: true,
           maxLength: 22, // not working because flutter is bugged :P
           controller: statNameController,
 
           decoration: InputDecoration(
-            hintText: "Stat name",
+            hintText: "Statistic name",
             counterText: "",
           ),
         ),
       ),
+      title: Container(
+          alignment: Alignment.centerRight, child: Text("max stat value:")),
       trailing: Container(
         width: 30,
         child: TextField(

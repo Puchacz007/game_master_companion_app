@@ -88,6 +88,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   int source;
   List<DynamicWidget> dynamicPlotPointsList = [];
   Adventure adventure;
+  bool isLoaded = false;
 
   _AdventureDesignerState(this.adventure);
 
@@ -104,6 +105,25 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
 
   void setConnectionSource(int newSource) {
     source = newSource;
+  }
+
+  void loadGraph(
+      Map<int, StoryPoint> map, double appBarHeight, double statusBarHeight) {
+    isLoaded = true;
+    map.forEach((key, storyPoint) {
+      dynamicPlotPointsList.insert(
+          key,
+          new DynamicWidget(
+              storyPoint.getX(),
+              storyPoint.getY(),
+              appBarHeight,
+              statusBarHeight,
+              setImage,
+              setConnectionSource,
+              connectPlotPoints,
+              key));
+      if (appBarHeight == 0 || statusBarHeight == 0) isLoaded = false;
+    });
   }
 
   void setImage(DraggableDetails dragDetails, double appBarHeight,
@@ -133,7 +153,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
             new DynamicWidget(_x, _y, appBarHeight, statusBarHeight, setImage,
                 setConnectionSource, connectPlotPoints, index));
       print("\nend y =" + _x.toString() + "\nend x =" + _y.toString());
-      adventure.addStoryPoint(index);
+      adventure.addNewStoryPoint(index, _x, _y);
 
       /*  if (dynamicPlotPointsList.length > 1)
         adventure.addConnection(index - 1, index); //testowe*/
@@ -152,6 +172,9 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       title: Text('Adventure Designer'),
     );
 
+    if (!isLoaded)
+      loadGraph(adventure.getStoryPoints(), appBar.preferredSize.height,
+          MediaQuery.of(context).padding.top);
     return Scaffold(
       appBar: appBar,
       body: Stack(
@@ -274,22 +297,26 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                   ),
                   RaisedButton(
                     onPressed: () async {
-                      adventure
-                          .setID(await DBProvider.db.getMaxAdventureID() + 1);
-                      await DBProvider.db.addData(adventure);
+                      if (adventure.getID() == null) {
+                        adventure
+                            .setID(await DBProvider.db.getMaxAdventureID() + 1);
+                        await DBProvider.db.addData(adventure);
+                        await DBProvider.db.addMaxStats(
+                            adventure.maxStats, adventure.getID().toString());
+                      }
 
                       int newStoryPointID =
                           await DBProvider.db.getMaxStoryID() + 1;
-                      int newNpcID = await DBProvider.db.getMaxNPCID() + 1;
-                      List<NPC> newNPCS = [];
+                      int newNpcID = await DBProvider.db.getMaxNPCID();
 
                       adventure.npcs.forEach((npc) async {
                         if (npc.getID() == null) {
                           npc.setAdventureID(adventure.getID());
-                          newNPCS.add(npc);
-                          //  npc.setID(newNpcID);
-                          //  ++newNpcID;
-                          //    await DBProvider.db.addData(npc);
+                          ++newNpcID;
+                          npc.setID(newNpcID);
+                          await DBProvider.db.addData(npc);
+                        } else {
+                          await DBProvider.db.updateData(npc);
                         }
                       });
 
@@ -299,6 +326,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                           storyPoint.setID(newStoryPointID);
                           ++newStoryPointID;
                           await DBProvider.db.addData(storyPoint);
+                        } else {
+                          await DBProvider.db.updateData(storyPoint);
                         }
                       });
                       adventure.storyPoints.values.forEach((storyPoint) async {
@@ -306,25 +335,21 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                           if (npc.getID() == null) {
                             npc.setAdventureID(adventure.getID());
                             npc.setStoryPointID(storyPoint.getStoryPointId());
-                            // npc.setID(newNpcID);
-                            //++newNpcID;
-                            // await DBProvider.db.addData(npc);
-                            newNPCS.add(npc);
+                            ++newNpcID;
+                            npc.setID(newNpcID);
+                            await DBProvider.db.addData(npc);
+                          } else {
+                            await DBProvider.db.updateData(npc);
                           }
                         });
                       });
-
-                      newNPCS.forEach((npc) async {
-                        if (npc.getID() == null) {
-                          npc.setID(newNpcID);
-                          ++newNpcID;
-                          await DBProvider.db.addData(npc);
-                        }
-                      });
-
                       adventure.events.forEach((event) async {
-                        event.setAdventureID(adventure.getID());
-                        await DBProvider.db.addData(event);
+                        if (event.adventureID == null) {
+                          event.setAdventureID(adventure.getID());
+                          await DBProvider.db.addData(event);
+                        } else {
+                          await DBProvider.db.updateData(event);
+                        }
                       });
                     },
                     child: const Text('Save', style: TextStyle(fontSize: 15)),
