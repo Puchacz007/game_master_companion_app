@@ -7,7 +7,7 @@ class Adventure {
   String name;
   int id;
   Map<int, StoryPoint> storyPoints;
-  Map<String, int> maxStats; //TODO
+  Map<String, int> maxStats;
   String pattern;
   var events = <Event>[];
   var npcs = <NPC>[];
@@ -94,13 +94,12 @@ class Adventure {
     maxStats[name] = value;
   }
 
-  void addNPC(NPC npc) {
+  void addNPC(NPC npc) async {
     NPC newNPC = NPC(
         name: npc.name,
         storyPointID: npc.storyPointID,
         adventureID: npc.adventureID,
         isImportant: npc.isImportant);
-    newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
   }
 
@@ -124,17 +123,31 @@ class Adventure {
     }
   }
 
-  void addAllNPCs(List<NPC> npcs) {
-    npcs.forEach((npc) {
-      if (npc.storyPointID == null)
-        this.npcs.add(npc);
+  void addAllNPCs(List<NPC> npcsList) {
+    npcsList.forEach((npc) {
+      if (npc.getStoryPointID() == null)
+        npcs.add(npc);
       else
-        this.storyPoints[npc.storyPointID].addNPC(npc);
+        //  storyPoints[npc.getStoryPointID()].addNPC(npc);
+        for (int i = 0; i < storyPoints.length; ++i) {
+          if (storyPoints[i].getID() == npc.getID()) {
+            storyPoints[i].addNPC(npc);
+            break;
+          }
+        }
     });
   }
 
   void addStoryPoint(StoryPoint storyPoint) {
-    storyPoints[storyPoints.length] = storyPoint;
+    storyPoints[storyPoints.length] = StoryPoint(
+        id: storyPoint.getID(),
+        storyOrder: storyPoint.storyOrder,
+        adventureID: storyPoint.adventureID,
+        name: storyPoint.name,
+        note: storyPoint.note,
+        players: storyPoint.players,
+        x: storyPoint.x,
+        y: storyPoint.y);
     //StoryPoint(id: storyPoint.id ,adventureID: storyPoint.adventureID,storyOrder: storyPoint.storyOrder,name: storyPoint.name)
   }
 }
@@ -221,15 +234,20 @@ class StoryPoint {
   void setID(int id) {
     if (this.id == null) this.id = id;
   }
-  void addNPC(NPC npc) {
+
+  void addNPC(NPC npc) async {
     NPC newNPC = NPC(
       name: npc.name,
       storyPointID: npc.storyPointID,
       adventureID: npc.adventureID,
       isImportant: npc.isImportant,
     );
-    newNPC.stats.addAll(npc.stats);
+    // newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
+  }
+
+  List<NPC> getNpcs() {
+    return npcs;
   }
 
   NPC getNPC(int index) {
@@ -298,16 +316,6 @@ class NPC {
         "isImportant": isImportant
       };
 
-  StoryPoint storyPointFromJson(String str) {
-    final jsonData = json.decode(str);
-    return StoryPoint.fromMap(jsonData);
-  }
-
-  String storyPointToJson(StoryPoint data) {
-    final dyn = data.toMap();
-    return json.encode(dyn);
-  }
-
   int getID() {
     return id;
   }
@@ -322,6 +330,10 @@ class NPC {
 
   void setAdventureID(int id) {
     this.adventureID = id;
+  }
+
+  int getStoryPointID() {
+    return storyPointID;
   }
 
   bool setImportance(bool value) => isImportant = value;

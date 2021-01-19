@@ -32,13 +32,22 @@ class _AdventureLoaderState extends State<AdventureLoader> {
 
   Future<void> loadAdventures() async {
     adventures.addAll(await DBProvider.db.getAllAdventures());
+    adventures.forEach((element) {
+      element.storyPoints = Map();
+      element.npcs = [];
+      element.maxStats = Map();
+      element.storyPoints = Map();
+      element.events = [];
+    });
     for (int i = 0; i < adventures.length; ++i) {
-      adventures[i].addAllStoryPoints(await DBProvider.db
-          .getAllStoryPointsFromAdventure(adventures[i].getID()));
-      adventures[i].addAllEvents(
-          await DBProvider.db.getAllEventsFromAdventure(adventures[i].getID()));
-      adventures[i].addAllNPCs(
-          await DBProvider.db.getAllNPCsFromAdventure(adventures[i].getID()));
+      var res = await DBProvider.db
+          .getAllStoryPointsFromAdventure(adventures[i].getID());
+      if (res != -1) adventures[i].addAllStoryPoints(res);
+      res =
+          await DBProvider.db.getAllEventsFromAdventure(adventures[i].getID());
+      if (res != -1) adventures[i].addAllEvents(res);
+      res = await DBProvider.db.getAllNPCsFromAdventure(adventures[i].getID());
+      if (res != -1) adventures[i].addAllNPCs(res);
       setState(() {});
     }
   }
@@ -84,8 +93,53 @@ class _AdventureLoaderState extends State<AdventureLoader> {
               ),
             ),
             RaisedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 if (choiceID >= 0) {
+                  adventures[choiceID].maxStats = Map();
+
+                  var res = await DBProvider.db
+                      .getAdventureMaxStats(adventures[choiceID].getID());
+                  res.forEach((row) {
+                    adventures[choiceID].maxStats[row['name']] = row['value'];
+                  });
+
+                  var res2 = await DBProvider.db
+                      .getAllAdventureConnections(adventures[choiceID].getID());
+                  res = await DBProvider.db
+                      .getAllAdventureStatsValues(adventures[choiceID].getID());
+
+                  for (int i = 0;
+                      i < adventures[choiceID].getStoryPoints().length;
+                      ++i) {
+                    adventures[choiceID].storyPoints[i].npcs.forEach((npc) {
+                      npc.stats = new Map();
+                      res.forEach((row) {
+                        if (row['NPCID'] == npc.getID()) {
+                          npc.stats[row['name']] = row['value'];
+                        }
+                      });
+                    });
+                    adventures[choiceID].storyPoints[i].connections = Set();
+                    res2.forEach((row) {
+                      if (row['ID'] ==
+                          adventures[choiceID].storyPoints[i].getID()) {
+                        adventures[choiceID]
+                            .storyPoints[i]
+                            .connections
+                            .add(row['targetID']);
+                      }
+                    });
+                  }
+
+                  adventures[choiceID].npcs.forEach((npc) {
+                    npc.stats = new Map();
+                    res.forEach((row) {
+                      if (row['NPCID'] == npc.getID()) {
+                        npc.stats[row['name']] = row['value'];
+                      }
+                    });
+                  });
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(

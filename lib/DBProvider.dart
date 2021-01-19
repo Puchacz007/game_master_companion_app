@@ -80,7 +80,6 @@ class DBProvider {
   addData(var data) async {
     final db = await database;
     String name;
-    var result;
     if (data is Adventure) {
       name = "Adventure";
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
@@ -221,7 +220,7 @@ class DBProvider {
         where: "adventureID = ?", whereArgs: [adventureID]);
     List<StoryPoint> list =
         res.isNotEmpty ? res.map((c) => StoryPoint.fromMap(c)).toList() : [];
-    return list;
+    return list.length > 0 ? list : -1;
   }
 
   getAllNPCsFromAdventure(int adventureID) async {
@@ -230,15 +229,49 @@ class DBProvider {
         .query("NPC", where: "adventureID = ?", whereArgs: [adventureID]);
     List<NPC> list =
         res.isNotEmpty ? res.map((c) => NPC.fromMap(c)).toList() : [];
+    /*
+    var resMap;
+    list.forEach((element) async {
 
-    for (int i = 0; i < list.length; ++i) //TODO
-    {
-      int npcID = list[i].getID();
-      var resMap = await db.rawQuery(
+      int npcID = element.getID();
+      element.stats = new Map();
+      resMap = await db.rawQuery(
           "SELECT NAME,VALUE FROM STATS WHERE npcID=$npcID AND adventureID = $adventureID");
-      list[i].stats = new Map();
-    }
-    return list;
+      resMap.forEach((row) async{
+        element.stats[row['name']]=row['value'];
+      });
+    });
+    {
+*/
+
+    return list.length > 0 ? list : -1;
+  }
+
+  getAllAdventureStatsValues(int adventureID) async {
+    final db = await database;
+    List<Map> res = await db
+        .rawQuery("SELECT * FROM STATS WHERE adventureID = $adventureID");
+    List<Map> parsedResult = [];
+    res.forEach((r) => parsedResult.add(Map<String, dynamic>.from(r)));
+    return parsedResult;
+  }
+
+  getAdventureMaxStats(int adventureID) async {
+    final db = await database;
+    List<Map> res = await db
+        .rawQuery("SELECT * FROM MAX_STATS WHERE adventureID = $adventureID");
+    List<Map> parsedResult = [];
+    res.forEach((r) => parsedResult.add(Map<String, dynamic>.from(r)));
+    return parsedResult;
+  }
+
+  getAllAdventureConnections(int adventureID) async {
+    final db = await database;
+    List<Map> res = await db
+        .rawQuery("SELECT * FROM Connections WHERE adventureID = $adventureID");
+    List<Map> parsedResult = [];
+    res.forEach((r) => parsedResult.add(Map<String, dynamic>.from(r)));
+    return parsedResult;
   }
 
   getAllEventsFromAdventure(int adventureID) async {
@@ -247,7 +280,7 @@ class DBProvider {
         .query("Event", where: "adventureID = ?", whereArgs: [adventureID]);
     List<Event> list =
         res.isNotEmpty ? res.map((c) => Event.fromMap(c)).toList() : [];
-    return list;
+    return list.length > 0 ? list : -1;
   }
 
   getAllAdventures() async {

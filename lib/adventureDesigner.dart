@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -171,10 +172,12 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       ),
       title: Text('Adventure Designer'),
     );
-
     if (!isLoaded)
       loadGraph(adventure.getStoryPoints(), appBar.preferredSize.height,
           MediaQuery.of(context).padding.top);
+    Timer(Duration(microseconds: 1), () {
+      setState(() {});
+    });
     return Scaffold(
       appBar: appBar,
       body: Stack(
@@ -406,13 +409,13 @@ class DynamicWidget extends StatelessWidget {
                 connectPlotPoints(index);
                 print("test");
               },
-                icon: Icon(
-                  Icons.radio_button_checked_sharp,
-                  key: _inKey,
-                ),
-                iconSize: 15,
-                padding: const EdgeInsets.all(0.0),
+              icon: Icon(
+                Icons.radio_button_checked_sharp,
+                key: _inKey,
               ),
+              iconSize: 15,
+              padding: const EdgeInsets.all(0.0),
+            ),
           ),
           Draggable<AssetImage>(
             data: AssetImage("assets/test.png"),
@@ -479,19 +482,19 @@ class DynamicWidget extends StatelessWidget {
 
             child: IconButton(
               //enableFeedback: false,
-                onPressed: () {
-                  setConnectionSource(index);
+              onPressed: () {
+                setConnectionSource(index);
                 print("test");
               },
 
-                icon: Icon(
-                  Icons.radio_button_unchecked_sharp,
-                  key: _outKey,
-                ),
-                iconSize: 15,
-                padding: const EdgeInsets.all(0.0),
+              icon: Icon(
+                Icons.radio_button_unchecked_sharp,
+                key: _outKey,
               ),
+              iconSize: 15,
+              padding: const EdgeInsets.all(0.0),
             ),
+          ),
         ],
       ),
     );
