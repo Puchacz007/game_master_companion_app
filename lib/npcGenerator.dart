@@ -249,17 +249,31 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
                   ],
                 ),
               ),
-            RaisedButton.icon(
-              onPressed: () {
-                if (dropdownStoryPoint == NPCGENWHOLESTORY)
-                  adventure.addNPC(npcs[int.parse(dropdownNPCSaveNumber)]);
-                else
-                  adventure.storyPoints[int.parse(dropdownStoryPoint)]
-                      .addNPC(npcs[int.parse(dropdownNPCSaveNumber)]);
-              },
-              icon: Icon(Icons.save_rounded),
-              label: Text("Save NPC"),
-            ),
+            if (isNPCGenerated)
+              RaisedButton.icon(
+                onPressed: () {
+                  int firstStatIndex = int.parse(dropdownNPCSaveNumber) *
+                          adventure.getStatsNumber() +
+                      1 +
+                      int.parse(dropdownNPCSaveNumber);
+                  int endLoop = firstStatIndex + adventure.getStatsNumber();
+                  for (; firstStatIndex < endLoop; firstStatIndex++) {
+                    npcs[int.parse(dropdownNPCSaveNumber)].changeStatValue(
+                        dynamicStatsWidgetList[firstStatIndex].statName,
+                        int.parse(dynamicStatsWidgetList[firstStatIndex]
+                            .statValueController
+                            .text));
+                  }
+
+                  if (dropdownStoryPoint == NPCGENWHOLESTORY)
+                    adventure.addNPC(npcs[int.parse(dropdownNPCSaveNumber)]);
+                  else
+                    adventure.storyPoints[int.parse(dropdownStoryPoint)]
+                        .addNPC(npcs[int.parse(dropdownNPCSaveNumber)]);
+                },
+                icon: Icon(Icons.save_rounded),
+                label: Text("Save NPC"),
+              ),
           ],
         ),
       ),
@@ -278,10 +292,10 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
 class DynamicListStatGen extends StatelessWidget {
   final TextEditingController statValueController = new TextEditingController();
   final String statName;
-  final int text;
+  final int number;
 
-  DynamicListStatGen(this.statName, this.text) {
-    statValueController.text = text.toString();
+  DynamicListStatGen(this.statName, this.number) {
+    statValueController.text = number.toString();
   }
 
   @override
@@ -321,7 +335,7 @@ class DynamicListStatGen extends StatelessWidget {
       );
     else
       return Center(
-        child: Text("NPC $text"),
+        child: Text("NPC $number"),
       );
   }
 }

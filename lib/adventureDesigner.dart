@@ -88,6 +88,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   double _x, _y;
   int source;
   List<DynamicWidget> dynamicPlotPointsList = [];
+  List<DynamicNPCWidget> dynamicNPCWidgetList = [];
   Adventure adventure;
   bool isLoaded = false;
 
@@ -298,19 +299,59 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                       //  padding:const EdgeInsets.all(0.0) ,
                     ),
                   ),
-                  RaisedButton(
-                    onPressed: () async {
-                      if (adventure.getID() == null) {
-                        adventure
-                            .setID(await DBProvider.db.getMaxAdventureID() + 1);
-                        await DBProvider.db.addData(adventure);
-                      }
+                  Container(
+                    //  width: 100,
+                    //  height: 40,
+                    child: RaisedButton(
+                      onPressed: () {
+                        List<NPC> allNpcs = adventure.getAllNPC();
+                        for (int i = 0; i < allNpcs.length; ++i) {
+                          if (i == 0)
+                            dynamicNPCWidgetList
+                                .add(DynamicNPCWidget(true, allNpcs[i].stats));
+                          dynamicNPCWidgetList
+                              .add(DynamicNPCWidget(true, allNpcs[i].stats));
+                        }
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                content: Container(
+                                  width: double.maxFinite,
+                                  child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        Text("test"),
+                                        Expanded(
+                                            child: ListView(
+                                          shrinkWrap: true,
+                                          children: dynamicNPCWidgetList,
+                                        ))
+                                      ]),
+                                ),
+                              );
+                            });
+                        dynamicNPCWidgetList.clear();
+                      },
+                      child: const Text('Show NPCs',
+                          style: TextStyle(fontSize: 15)),
+                      //  padding:const EdgeInsets.all(0.0) ,
+                    ),
+                  ),
+                  Container(
+                    child: RaisedButton(
+                      onPressed: () async {
+                        if (adventure.getID() == null) {
+                          adventure.setID(
+                              await DBProvider.db.getMaxAdventureID() + 1);
+                          await DBProvider.db.addData(adventure);
+                        }
 
-                      int newStoryPointID =
-                          await DBProvider.db.getMaxStoryID() + 1;
-                      int newNpcID = await DBProvider.db.getMaxNPCID();
+                        int newStoryPointID =
+                            await DBProvider.db.getMaxStoryID() + 1;
+                        int newNpcID = await DBProvider.db.getMaxNPCID();
 
-                      adventure.npcs.forEach((npc) async {
+                        adventure.npcs.forEach((npc) async {
                         if (npc.getID() == null) {
                           npc.setAdventureID(adventure.getID());
                           ++newNpcID;
@@ -346,15 +387,16 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                       });
                       adventure.events.forEach((event) async {
                         if (event.adventureID == null) {
-                          event.setAdventureID(adventure.getID());
-                          await DBProvider.db.addData(event);
-                        } else {
-                          await DBProvider.db.updateData(event);
-                        }
-                      });
-                    },
-                    child: const Text('Save', style: TextStyle(fontSize: 15)),
-                    //  padding:const EdgeInsets.all(0.0) ,
+                            event.setAdventureID(adventure.getID());
+                            await DBProvider.db.addData(event);
+                          } else {
+                            await DBProvider.db.updateData(event);
+                          }
+                        });
+                      },
+                      child: const Text('Save', style: TextStyle(fontSize: 15)),
+                      //  padding:const EdgeInsets.all(0.0) ,
+                    ),
                   ),
                 ],
               ),
@@ -484,7 +526,6 @@ class DynamicWidget extends StatelessWidget {
               //enableFeedback: false,
               onPressed: () {
                 setConnectionSource(index);
-                print("test");
               },
 
               icon: Icon(
@@ -498,5 +539,50 @@ class DynamicWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class DynamicNPCWidget extends StatelessWidget {
+  final bool first;
+  final Map<String, int> stats;
+  final List<DynamicNPCStatWidget> npsStatValueWidgetList = [];
+  final List<DynamicNPCStatWidget> npsStatNameWidgetList = [];
+
+  DynamicNPCWidget(this.first, this.stats) {
+    if (first) {
+      stats.forEach((key, value) {
+        npsStatNameWidgetList.add(DynamicNPCStatWidget(key.toString()));
+      });
+    }
+    stats.forEach((key, value) {
+      npsStatValueWidgetList.add(DynamicNPCStatWidget(value.toString()));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Column(
+        children: [
+          Row(
+            children: npsStatNameWidgetList,
+          ),
+          Row(
+            children: npsStatValueWidgetList,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DynamicNPCStatWidget extends StatelessWidget {
+  final String text;
+
+  DynamicNPCStatWidget(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text);
   }
 }

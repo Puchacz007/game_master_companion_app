@@ -24,6 +24,9 @@ class Adventure {
         id: json["id"],
         name: json["name"],
       );
+int getStatsNumber() {
+    return maxStats.length;
+  }
 
   Map<String, dynamic> toMap() => {
         "id": id,
@@ -138,6 +141,14 @@ class Adventure {
     });
   }
 
+  List<NPC> getAllNPC() {
+    List<NPC> allNPCs = npcs;
+    for (int i = 0; i < storyPoints.length; ++i) {
+      allNPCs.addAll(storyPoints[i].getNpcs());
+    }
+    return allNPCs;
+  }
+
   void addStoryPoint(StoryPoint storyPoint) {
     storyPoints[storyPoints.length] = StoryPoint(
         id: storyPoint.getID(),
@@ -242,7 +253,7 @@ class StoryPoint {
       adventureID: npc.adventureID,
       isImportant: npc.isImportant,
     );
-    // newNPC.stats.addAll(npc.stats);
+    newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
   }
 
@@ -396,9 +407,10 @@ class NPC {
         }
       });
     }
-    void changeStat(String name, int value) {
-      stats[name] = value;
-    }
+  }
+
+  void changeStatValue(String name, int value) {
+    stats[name] = value;
   }
 }
 
