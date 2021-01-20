@@ -325,7 +325,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                                         Expanded(
                                             child: ListView(
                                           shrinkWrap: true,
-                                          children: dynamicNPCWidgetList,
+                                          children:
+                                              dynamicNPCWidgetList, //bugged TODO
                                         ))
                                       ]),
                                 ),
