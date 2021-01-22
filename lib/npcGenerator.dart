@@ -45,7 +45,6 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
       test2.add(Stat(key, false));
     });
 */
-
     List<DropdownMenuItem> dropdownStatList = adventure.maxStats.keys
         .toList()
         .map((val) => DropdownMenuItem(
@@ -91,12 +90,15 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
               child: Text(val),
             ))
         .toList();
+
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
+
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text("AdventureCustomizer"),
@@ -196,7 +198,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
                   child: ListView.builder(
                       itemCount: dynamicStatsWidgetList.length,
                       itemBuilder: (_, index) =>
-                          dynamicStatsWidgetList[index])),
+                      dynamicStatsWidgetList[index])),
             if (isNPCGenerated)
               Center(
                 child: Row(
@@ -253,7 +255,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
               RaisedButton.icon(
                 onPressed: () {
                   int firstStatIndex = int.parse(dropdownNPCSaveNumber) *
-                          adventure.getStatsNumber() +
+                      adventure.getStatsNumber() +
                       1 +
                       int.parse(dropdownNPCSaveNumber);
                   int endLoop = firstStatIndex + adventure.getStatsNumber();

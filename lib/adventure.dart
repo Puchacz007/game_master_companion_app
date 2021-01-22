@@ -103,6 +103,7 @@ int getStatsNumber() {
         storyPointID: npc.storyPointID,
         adventureID: npc.adventureID,
         isImportant: npc.isImportant);
+    newNPC.stats.addAll(npc.stats);
     npcs.add(newNPC);
   }
 
@@ -112,7 +113,7 @@ int getStatsNumber() {
 
   Event getRandomEvent() {
     var rng = new Random();
-    return events[rng.nextInt(events.length - 1)];
+    return events[rng.nextInt(events.length)];
   }
 
   void addAllEvents(List<Event> events) {
@@ -131,9 +132,10 @@ int getStatsNumber() {
       if (npc.getStoryPointID() == null)
         npcs.add(npc);
       else
-        //  storyPoints[npc.getStoryPointID()].addNPC(npc);
+        // storyPoints[npc.getID].addNPC(npc);
+
         for (int i = 0; i < storyPoints.length; ++i) {
-          if (storyPoints[i].getID() == npc.getID()) {
+          if (storyPoints[i].getID() == npc.getStoryPointID()) {
             storyPoints[i].addNPC(npc);
             break;
           }

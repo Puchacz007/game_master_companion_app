@@ -246,6 +246,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         MediaQuery.of(context).padding.top,
                         dynamicPlotPointsList.length),
                   ),
+                  /*
                   SizedBox(
                     height: 20,
                   ),
@@ -259,6 +260,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
+                  */
+
                   SizedBox(
                     height: 5,
                   ),
@@ -305,12 +308,14 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     child: RaisedButton(
                       onPressed: () {
                         List<NPC> allNpcs = adventure.getAllNPC();
+                        dynamicNPCWidgetList.clear();
                         for (int i = 0; i < allNpcs.length; ++i) {
                           if (i == 0)
-                            dynamicNPCWidgetList
-                                .add(DynamicNPCWidget(true, allNpcs[i].stats));
-                          dynamicNPCWidgetList
-                              .add(DynamicNPCWidget(true, allNpcs[i].stats));
+                            dynamicNPCWidgetList.add(
+                                DynamicNPCWidget(true, allNpcs[i].stats, i));
+                          else
+                            dynamicNPCWidgetList.add(
+                                DynamicNPCWidget(false, allNpcs[i].stats, i));
                         }
                         showDialog(
                             context: context,
@@ -321,20 +326,50 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                                   child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        Text("test"),
                                         Expanded(
                                             child: ListView(
                                           shrinkWrap: true,
-                                          children:
-                                              dynamicNPCWidgetList, //bugged TODO
+                                          children: dynamicNPCWidgetList,
                                         ))
                                       ]),
                                 ),
                               );
                             });
-                        dynamicNPCWidgetList.clear();
                       },
                       child: const Text('Show NPCs',
+                          style: TextStyle(fontSize: 15)),
+                      //  padding:const EdgeInsets.all(0.0) ,
+                    ),
+                  ),
+                  Container(
+                    //  width: 100,
+                    //  height: 40,
+                    child: RaisedButton(
+                      onPressed: () {
+                        Event event = adventure.getRandomEvent();
+
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                content: Container(
+                                  width: double.maxFinite,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        child: Text(event.getEventName()),
+                                      ),
+                                      Container(
+                                        child: Text(event.getEventText()),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            });
+                      },
+                      child: const Text('Get random event',
                           style: TextStyle(fontSize: 15)),
                       //  padding:const EdgeInsets.all(0.0) ,
                     ),
@@ -548,15 +583,19 @@ class DynamicNPCWidget extends StatelessWidget {
   final Map<String, int> stats;
   final List<DynamicNPCStatWidget> npsStatValueWidgetList = [];
   final List<DynamicNPCStatWidget> npsStatNameWidgetList = [];
+  final number;
 
-  DynamicNPCWidget(this.first, this.stats) {
+  DynamicNPCWidget(this.first, this.stats, this.number) {
     if (first) {
+      /*
       stats.forEach((key, value) {
         npsStatNameWidgetList.add(DynamicNPCStatWidget(key.toString()));
       });
+      */
+
     }
     stats.forEach((key, value) {
-      npsStatValueWidgetList.add(DynamicNPCStatWidget(value.toString()));
+      npsStatValueWidgetList.add(DynamicNPCStatWidget(key, value.toString()));
     });
   }
 
@@ -564,11 +603,23 @@ class DynamicNPCWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Column(
+        //mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          /*
           Row(
             children: npsStatNameWidgetList,
           ),
-          Row(
+        */
+          if (first)
+            Row(
+              children: [
+                Text("skill"),
+                Spacer(),
+                Text("value"),
+              ],
+            ),
+          Text("NPC number $number"),
+          Column(
             children: npsStatValueWidgetList,
           ),
         ],
@@ -578,12 +629,18 @@ class DynamicNPCWidget extends StatelessWidget {
 }
 
 class DynamicNPCStatWidget extends StatelessWidget {
-  final String text;
+  final String value, skillName;
 
-  DynamicNPCStatWidget(this.text);
+  DynamicNPCStatWidget(this.skillName, this.value);
 
   @override
   Widget build(BuildContext context) {
-    return Text(text);
+    return Row(
+      children: [
+        Text("$skillName"),
+        Spacer(),
+        Text("$value"),
+      ],
+    );
   }
 }

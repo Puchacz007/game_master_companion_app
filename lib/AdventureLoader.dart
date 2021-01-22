@@ -114,7 +114,7 @@ class _AdventureLoaderState extends State<AdventureLoader> {
                     adventures[choiceID].storyPoints[i].npcs.forEach((npc) {
                       npc.stats = new Map();
                       res.forEach((row) {
-                        if (row['NPCID'] == npc.getID()) {
+                        if (row['id'] == npc.getID()) {
                           npc.stats[row['name']] = row['value'];
                         }
                       });

@@ -24,6 +24,7 @@ class _EventGeneratorState extends State<EventGenerator> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
@@ -38,17 +39,30 @@ class _EventGeneratorState extends State<EventGenerator> {
               height: 20,
             ),
             if (newEvent == true)
-              TextFormField(
-                controller: eventNameController,
-                decoration: InputDecoration(
-                  counterText: "",
+              Container(
+                width: 200,
+                alignment: Alignment.center,
+                child: TextFormField(
+                  textAlign: TextAlign.center,
+                  maxLength: 20,
+                  maxLengthEnforced: true,
+                  controller: eventNameController,
+                  decoration: InputDecoration(
+                    hintText: "event name",
+                    //counterText: "",
+                  ),
                 ),
               ),
             if (newEvent == true)
               TextFormField(
+                maxLength: 500,
+                maxLengthEnforced: true,
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
                 controller: eventTextController,
                 decoration: InputDecoration(
-                  counterText: "",
+                  hintText: "event text",
+                  //   counterText: "",
                 ),
               ),
             if (newEvent == true)

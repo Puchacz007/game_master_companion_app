@@ -42,6 +42,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
     // than having to individually change instances of widgets.
 
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
@@ -56,7 +57,8 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
           // in the middle of the parent.
 
           child: Builder(builder: (context) {
-            if (widget.isCustom) {
+        // if (widget.isCustom)
+        {
           return //Custom Adventure
 
               Container(
@@ -68,12 +70,15 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                 Container(
                   width: 200,
                   // height: 21,
+                  alignment: Alignment.center,
                   child: TextField(
+                    textAlign: TextAlign.center,
                     // keyboardType: TextInputType.name,
                     // maxLength: 3,
                     // maxLengthEnforced: true,
                     maxLengthEnforced: true,
-                    maxLength: 22, // not working because flutter is bugged :P
+                    maxLength: 22,
+                    // not working because flutter is bugged :P
                     controller: adventureNameController,
                     decoration: InputDecoration(
                       hintText: "Adventure name",
@@ -148,31 +153,32 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
               //  ),
             ),
           );
-        } else {
-          return //Based Adventure
-              SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 20,
-                ),
-                RaisedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AdventureDesigner()),
-                    );
-                  },
-                  icon: Icon(Icons.add_circle_rounded),
-                  label: Text("Create Adventure"),
-                ),
-              ],
-            ),
-          );
         }
+        /*else {
+              return //Based Adventure
+                SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      RaisedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AdventureDesigner()),
+                          );
+                        },
+                        icon: Icon(Icons.add_circle_rounded),
+                        label: Text("Create Adventure"),
+                      ),
+                    ],
+                  ),
+                );
+            }*/
       })),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
