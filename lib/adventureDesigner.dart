@@ -34,9 +34,10 @@ class LinePainter extends CustomPainter {
   double appBarHeight;
   double statusBarHeight;
   Function getStatusBarHeight;
+  ScrollController scrollController;
 
   LinePainter(this.dynamicPlotPointsList, this.adventure, this.appBarHeight,
-      this.getStatusBarHeight);
+      this.getStatusBarHeight, this.scrollController);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -61,12 +62,14 @@ class LinePainter extends CustomPainter {
 
           canvas.drawLine(
               Offset(
-                  renderBox1.localToGlobal(Offset.zero).dx,
+                  renderBox1.localToGlobal(Offset.zero).dx +
+                      scrollController.offset,
                   renderBox1.localToGlobal(Offset.zero).dy -
                       statusBarHeight -
                       appBarHeight),
               Offset(
-                  renderBox2.localToGlobal(Offset.zero).dx,
+                  renderBox2.localToGlobal(Offset.zero).dx +
+                      scrollController.offset,
                   renderBox2.localToGlobal(Offset.zero).dy -
                       statusBarHeight -
                       appBarHeight),
@@ -91,6 +94,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
   List<DynamicNPCWidget> dynamicNPCWidgetList = [];
   Adventure adventure;
   bool isLoaded = false;
+  ScrollController scrollController = new ScrollController();
 
   _AdventureDesignerState(this.adventure);
 
@@ -130,11 +134,13 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
 
   void setImage(DraggableDetails dragDetails, double appBarHeight,
       double statusBarHeight, int index) {
+    if (dragDetails.offset.dx + scrollController.offset <= 100 ||
+        dragDetails.offset.dy - appBarHeight - statusBarHeight <= 0) return;
     if (isSuccessful) {
       bool deleted = false;
       print("start x = " + _x.toString() + "\nstart y = " + _y.toString());
       setState(() {
-        _x = dragDetails.offset.dx;
+        _x = dragDetails.offset.dx + scrollController.offset - 15;
         _y = dragDetails.offset.dy - appBarHeight - statusBarHeight;
         isSuccessful = false;
       });
@@ -156,13 +162,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                 setConnectionSource, connectPlotPoints, index));
       print("\nend y =" + _x.toString() + "\nend x =" + _y.toString());
       adventure.addNewStoryPoint(index, _x, _y);
-
-      /*  if (dynamicPlotPointsList.length > 1)
-        adventure.addConnection(index - 1, index); //testowe*/
     }
   }
-
-  AssetImage boxes = new AssetImage("assets/test.png");
 
   @override
   Widget build(BuildContext context) {
@@ -197,31 +198,65 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                   "global dy=" +
                   details.globalPosition.dy.toString());
             },
-            child: DragTarget<AssetImage>(
-              builder: (context, List<AssetImage> candidateData, rejectedData) {
-                return CustomPaint(
-                  painter: LinePainter(dynamicPlotPointsList, adventure,
-                      appBar.preferredSize.height, getStatusBarHeight),
-                  child: Container(
+            child: SingleChildScrollView(
+              controller: scrollController,
+              scrollDirection: Axis.horizontal,
+              child: Stack(
+                children: [
+                  Container(
+                    height: 5000,
+                    width: 5000,
+                    child: Stack(
+                      children: [
+                        /*Positioned(
+                top: 0,
+                left: 100,
+                width: 1000,
+                height: 1000,
+                child: Container(color: Colors.red),
+              ),//for test
+              */
 
-                      //color: Colors.yellow,
+                        DragTarget<AssetImage>(
+                          builder: (context, List<AssetImage> candidateData,
+                              rejectedData) {
+                            return CustomPaint(
+                              painter: LinePainter(
+                                  dynamicPlotPointsList,
+                                  adventure,
+                                  appBar.preferredSize.height,
+                                  getStatusBarHeight,
+                                  scrollController),
+                              child: Container(
 
-                      ),
-                );
-              },
+                                  //color: Colors.yellow,
+
+                                  ),
+                            );
+                          },
               onWillAccept: (data) {
                 print("onWillAccept");
                 return true;
               },
-              onLeave: (data) {
-                print("onLeave");
-              },
-              onAccept: (data) {
-                print("onAccept");
-                setState(() {
-                  isSuccessful = true;
-                });
-              },
+                          onLeave: (data) {
+                            print("onLeave");
+                          },
+                          onAccept: (data) {
+                            print("onAccept");
+                            setState(() {
+                              isSuccessful = true;
+                            });
+                          },
+                        ),
+                        if (dynamicPlotPointsList.isNotEmpty)
+                          Stack(
+                            children: dynamicPlotPointsList,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Container(
@@ -231,11 +266,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
             child: Drawer(
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 20,
-                  ),
                   Draggable<AssetImage>(
-                    data: boxes,
+                    data: AssetImage("assets/test.png"),
                     child:
                         Image.asset("assets/test.png", height: 100, width: 100),
                     feedback:
@@ -247,9 +279,6 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         dynamicPlotPointsList.length),
                   ),
                   /*
-                  SizedBox(
-                    height: 20,
-                  ),
                   Container(
                     color: Colors.amberAccent,
                     child: Text(
@@ -261,11 +290,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     ),
                   ),
                   */
-
-                  SizedBox(
-                    height: 5,
-                  ),
-                  SizedBox(
+                  Container(
                     // width: 100,
                     // height: 40,
                     child: RaisedButton(
@@ -281,9 +306,6 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                           style: TextStyle(fontSize: 15)),
                       // padding:const EdgeInsets.all(0.0) ,
                     ),
-                  ),
-                  SizedBox(
-                    height: 5,
                   ),
                   Container(
                     //  width: 100,
@@ -438,10 +460,6 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
               ),
             ),
           ),
-          if (dynamicPlotPointsList.isNotEmpty)
-            Stack(
-              children: dynamicPlotPointsList,
-            )
         ],
       ),
     );
