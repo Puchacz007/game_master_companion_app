@@ -49,13 +49,15 @@ class LinePainter extends CustomPainter {
       statusBarHeight = getStatusBarHeight();
 
       adventure.storyPoints.forEach((key, value) {
-        RenderBox renderBox1 = dynamicPlotPointsList[key]
+        RenderBox renderBox1 = dynamicPlotPointsList[dynamicPlotPointsList
+                .indexWhere((element) => element.index == key)]
             ._outKey
             .currentContext
             .findRenderObject();
 
-        adventure.getConnections(key).forEach((element) {
-          RenderBox renderBox2 = dynamicPlotPointsList[element]
+        adventure.getConnections(key).forEach((connection) {
+          RenderBox renderBox2 = dynamicPlotPointsList[dynamicPlotPointsList
+                  .indexWhere((element) => element.index == connection)]
               ._inKey
               .currentContext
               .findRenderObject();
@@ -63,16 +65,20 @@ class LinePainter extends CustomPainter {
           canvas.drawLine(
               Offset(
                   renderBox1.localToGlobal(Offset.zero).dx +
-                      scrollController.offset,
+                      scrollController.offset +
+                      7.5,
                   renderBox1.localToGlobal(Offset.zero).dy -
                       statusBarHeight -
-                      appBarHeight),
+                      appBarHeight +
+                      7.5),
               Offset(
                   renderBox2.localToGlobal(Offset.zero).dx +
-                      scrollController.offset,
+                      scrollController.offset +
+                      7.5,
                   renderBox2.localToGlobal(Offset.zero).dy -
                       statusBarHeight -
-                      appBarHeight),
+                      appBarHeight +
+                      7.5),
               paint);
         });
       });
@@ -102,6 +108,18 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
     return MediaQuery.of(context).padding.top;
   }
 
+  void deletePlotPoint(int index, var dynamicPlotPoint) {
+    adventure.storyPoints.forEach((key, value) {
+      if (key != index) value.deleteConnection(index);
+    });
+    DBProvider.db.deleteStoryNode(adventure.storyPoints[index].getID());
+
+    adventure.storyPoints.removeWhere((key, value) => key == index);
+    dynamicPlotPointsList.remove(dynamicPlotPoint);
+
+    setState(() {});
+  }
+
   void connectPlotPoints(int target) {
     if (source != null && source != target && target != null) {
       adventure.addConnection(source, target);
@@ -127,7 +145,10 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
               setImage,
               setConnectionSource,
               connectPlotPoints,
-              key));
+              key,
+              deletePlotPoint));
+      dynamicPlotPointsList[dynamicPlotPointsList.length - 1].noteText.text =
+          storyPoint.note;
       if (appBarHeight == 0 || statusBarHeight == 0) isLoaded = false;
     });
   }
@@ -148,8 +169,16 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
         if (element.index == index) {
           dynamicPlotPointsList.insert(
               index,
-              new DynamicWidget(_x, _y, appBarHeight, statusBarHeight, setImage,
-                  setConnectionSource, connectPlotPoints, index));
+              new DynamicWidget(
+                  _x,
+                  _y,
+                  appBarHeight,
+                  statusBarHeight,
+                  setImage,
+                  setConnectionSource,
+                  connectPlotPoints,
+                  index,
+                  deletePlotPoint));
           dynamicPlotPointsList.remove(element);
 
           deleted = true;
@@ -158,11 +187,28 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       if (deleted == false)
         dynamicPlotPointsList.insert(
             index,
-            new DynamicWidget(_x, _y, appBarHeight, statusBarHeight, setImage,
-                setConnectionSource, connectPlotPoints, index));
+            new DynamicWidget(
+                _x,
+                _y,
+                appBarHeight,
+                statusBarHeight,
+                setImage,
+                setConnectionSource,
+                connectPlotPoints,
+                index,
+                deletePlotPoint));
       print("\nend y =" + _x.toString() + "\nend x =" + _y.toString());
       adventure.addNewStoryPoint(index, _x, _y);
     }
+  }
+
+  int getPlotPointsNextIndex() {
+    int index = 0;
+    dynamicPlotPointsList.forEach((element) {
+      if (element.index == index) ++index;
+    });
+
+    return index;
   }
 
   @override
@@ -267,16 +313,16 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
               child: Column(
                 children: [
                   Draggable<AssetImage>(
-                    data: AssetImage("assets/test.png"),
-                    child:
-                        Image.asset("assets/test.png", height: 100, width: 100),
-                    feedback:
-                        Image.asset("assets/test.png", height: 100, width: 100),
+                    data: AssetImage("assets/story_point.png"),
+                    child: Image.asset("assets/story_point.png",
+                        height: 100, width: 150),
+                    feedback: Image.asset("assets/story_point.png",
+                        height: 100, width: 150),
                     onDragEnd: (dragDetails) => setImage(
                         dragDetails,
                         appBar.preferredSize.height,
                         MediaQuery.of(context).padding.top,
-                        dynamicPlotPointsList.length),
+                        getPlotPointsNextIndex()),
                   ),
                   /*
                   Container(
@@ -368,28 +414,30 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     //  height: 40,
                     child: RaisedButton(
                       onPressed: () {
-                        Event event = adventure.getRandomEvent();
+                        if (adventure.events.isNotEmpty) {
+                          Event event = adventure.getRandomEvent();
 
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                content: Container(
-                                  width: double.maxFinite,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        child: Text(event.getEventName()),
-                                      ),
-                                      Container(
-                                        child: Text(event.getEventText()),
-                                      ),
-                                    ],
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  content: Container(
+                                    width: double.maxFinite,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          child: Text(event.getEventName()),
+                                        ),
+                                        Container(
+                                          child: Text(event.getEventText()),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            });
+                                );
+                              });
+                        }
                       },
                       child: const Text('Get random event',
                           style: TextStyle(fontSize: 15)),
@@ -410,25 +458,30 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         int newNpcID = await DBProvider.db.getMaxNPCID();
 
                         adventure.npcs.forEach((npc) async {
-                        if (npc.getID() == null) {
-                          npc.setAdventureID(adventure.getID());
-                          ++newNpcID;
-                          npc.setID(newNpcID);
-                          await DBProvider.db.addData(npc);
-                        } else {
-                          await DBProvider.db.updateData(npc);
+                          if (npc.getID() == null) {
+                            npc.setAdventureID(adventure.getID());
+                            ++newNpcID;
+                            npc.setID(newNpcID);
+                            await DBProvider.db.addData(npc);
+                          } else {
+                            await DBProvider.db.updateData(npc);
+                          }
+                        });
+                        for (int i = 0; i < dynamicPlotPointsList.length; ++i) {
+                          adventure.storyPoints[i]
+                              .setNote(dynamicPlotPointsList[i].noteText.text);
                         }
-                      });
 
-                      adventure.storyPoints.values.forEach((storyPoint) async {
-                        if (storyPoint.getID() == null) {
-                          storyPoint.setAdventureID(adventure.getID());
-                          storyPoint.setID(newStoryPointID);
-                          ++newStoryPointID;
-                          await DBProvider.db.addData(storyPoint);
-                        } else {
-                          await DBProvider.db.updateData(storyPoint);
-                        }
+                        adventure.storyPoints.values
+                            .forEach((storyPoint) async {
+                          if (storyPoint.getID() == null) {
+                            storyPoint.setAdventureID(adventure.getID());
+                            storyPoint.setID(newStoryPointID);
+                            ++newStoryPointID;
+                            await DBProvider.db.addData(storyPoint);
+                          } else {
+                            await DBProvider.db.updateData(storyPoint);
+                          }
                       });
                       adventure.storyPoints.values.forEach((storyPoint) async {
                         storyPoint.npcs.forEach((npc) async {
@@ -468,11 +521,15 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
 
 class DynamicWidget extends StatelessWidget {
   final double _x, _y;
-  final Function setImageLocation, setConnectionSource, connectPlotPoints;
+  final Function setImageLocation,
+      setConnectionSource,
+      connectPlotPoints,
+      deleteStoryPoint;
   final appBarHeight, statusBarHeight;
   final int index;
   final GlobalKey _outKey = GlobalKey();
   final GlobalKey _inKey = GlobalKey();
+  final TextEditingController noteText = TextEditingController();
 
   DynamicWidget(
       this._x,
@@ -482,10 +539,12 @@ class DynamicWidget extends StatelessWidget {
       this.setImageLocation,
       this.setConnectionSource,
       this.connectPlotPoints,
-      this.index);
+      this.index,
+      this.deleteStoryPoint);
 
   @override
   Widget build(context) {
+    //   StoryPoint storyPoint = getStoryPoint(index);
     return Positioned(
       left: _x,
       top: _y,
@@ -503,7 +562,6 @@ class DynamicWidget extends StatelessWidget {
             child: IconButton(
               onPressed: () {
                 connectPlotPoints(index);
-                print("test");
               },
               icon: Icon(
                 Icons.radio_button_checked_sharp,
@@ -514,12 +572,83 @@ class DynamicWidget extends StatelessWidget {
             ),
           ),
           Draggable<AssetImage>(
-            data: AssetImage("assets/test.png"),
+            data: AssetImage("assets/story_point.png"),
             child: Stack(
+              alignment: Alignment.topCenter,
               children: [
-                Image.asset("assets/test.png", height: 100, width: 100),
+                Image.asset("assets/story_point.png", height: 100, width: 150),
                 Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        "storyPoint " + index.toString(),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    /*Container(
+                      alignment: Alignment.center,
+                      child: Text("storyOrder " + storyPoint.getStoryOrder().toString(),textAlign: TextAlign.center,),
+                    ),*/
+
+                    Container(
+                      //  width: 100,
+                      //  height: 40,
+                      child: RaisedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  content: Container(
+                                    width: double.maxFinite,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: TextFormField(
+                                            maxLength: 500,
+                                            maxLengthEnforced: true,
+                                            keyboardType:
+                                                TextInputType.multiline,
+                                            maxLines: null,
+                                            controller: noteText,
+                                            decoration: InputDecoration(
+                                              hintText: "note text",
+                                              //   counterText: "",
+                                            ),
+                                          ),
+                                        ),
+
+                                        /*
+                                    Container(
+                                      child: Text(note),
+                                    ),*/
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              });
+                        },
+                        child:
+                            const Text('Notes', style: TextStyle(fontSize: 15)),
+                        //  padding:const EdgeInsets.all(0.0) ,
+                      ),
+                    ),
+                    Container(
+                      child: IconButton(
+                        //enableFeedback: false,
+                        onPressed: () {
+                          deleteStoryPoint(index, this);
+                        },
+                        icon: Icon(
+                          Icons.delete,
+                        ),
+                        iconSize: 15,
+                        padding: const EdgeInsets.all(0.0),
+                      ),
+                    ),
                     /*
                     TextField(
                     decoration: InputDecoration(
@@ -534,7 +663,7 @@ class DynamicWidget extends StatelessWidget {
                         ),
                       ),
                       */
-
+                    /*
                     SizedBox(
                       width: 100,
                       height: 30,
@@ -548,23 +677,15 @@ class DynamicWidget extends StatelessWidget {
                     SizedBox(
                       height: 5,
                     ),
+                    */
                   ],
-                )
+                ),
               ],
             ),
-            feedback: Image.asset("assets/test.png", height: 100, width: 100),
+            feedback:
+                Image.asset("assets/story_point.png", height: 100, width: 150),
             onDragEnd: (dragDetails) => setImageLocation(
                 dragDetails, appBarHeight, statusBarHeight, index),
-
-            /*
-         Image(
-        width: 100,
-        height: 100,
-        image: new AssetImage("assets/test.png")
-
-
-        ),
-        */
           ),
           Container(
             padding: const EdgeInsets.all(0.0),

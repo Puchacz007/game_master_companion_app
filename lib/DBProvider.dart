@@ -200,6 +200,7 @@ class DBProvider {
         res.isNotEmpty ? res.map((c) => Adventure.fromMap(c)).toList() : [];
     return list.first.id != null ? list.first.id : -1;
   }
+
   getMaxNPCID() async {
     final db = await database;
     var res = await db.rawQuery("SELECT MAX(id) as id FROM NPC");
@@ -295,5 +296,22 @@ class DBProvider {
     final db = await database;
     var res = await db.query("Adventure", where: "id = ?", whereArgs: [id]);
     return res.isNotEmpty ? StoryPoint.fromMap(res.first) : Null;
+  }
+
+  deleteStoryNode(int id) async // TODO bugged
+  {
+    final db = await database;
+    await db.delete("Connections",
+        where: "ID = ? OR targetID = ?", whereArgs: [id, id]);
+    await db.delete("StoryPoint", where: "id = ?", whereArgs: [id]);
+    var res = await db
+        .query("StoryPoint", where: "storyPointID = ?", whereArgs: [id]);
+    List<StoryPoint> list =
+        res.isNotEmpty ? res.map((c) => StoryPoint.fromMap(c)).toList() : [];
+    await db.delete("NPC", where: "storyPointID = ?", whereArgs: [id]);
+    list.forEach((element) async {
+      await db
+          .delete("STATS", where: "NPCID = ?", whereArgs: [element.getID()]);
+    });
   }
 }

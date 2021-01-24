@@ -173,12 +173,16 @@ class StoryPoint {
   String note;
   String players;
   var npcs = <NPC>[];
-  Set<int> connections = {}; //TODO
+  Set<int> connections = {};
   double x, y;
 
   StoryPoint.init(double x, double y) {
     this.x = x;
     this.y = y;
+  }
+
+  void setNote(String note) {
+    this.note = note;
   }
 
   double getX() {
@@ -212,7 +216,7 @@ class StoryPoint {
         storyOrder: json["storyOrder"],
         adventureID: json["adventureID"],
         name: json["name"],
-        note: json[" note"],
+        note: json["note"],
         players: json["players"],
         x: json["x"],
         y: json["y"],
@@ -229,6 +233,10 @@ class StoryPoint {
         "x": x,
         "y": y,
       };
+
+  void deleteConnection(int target) {
+    connections.removeWhere((element) => element == target);
+  }
 
   StoryPoint storyPointFromJson(String str) {
     final jsonData = json.decode(str);
@@ -250,6 +258,7 @@ class StoryPoint {
 
   void addNPC(NPC npc) async {
     NPC newNPC = NPC(
+      id: npc.getID(),
       name: npc.name,
       storyPointID: npc.storyPointID,
       adventureID: npc.adventureID,
@@ -282,6 +291,10 @@ class StoryPoint {
 */
   void setStoryOrder(int storyOrder) {
     this.storyOrder = storyOrder;
+  }
+
+  int getStoryOrder() {
+    return storyOrder;
   }
 
   int getStoryPointId() {
