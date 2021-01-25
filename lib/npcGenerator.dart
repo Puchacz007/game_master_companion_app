@@ -4,11 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:game_master_companion_app/adventure.dart';
 import 'package:game_master_companion_app/strings.dart';
 
+import 'NPC.dart';
+
 class NPCgeneratorPage extends StatefulWidget {
   NPCgeneratorPage({Key key, @required this.adventure}) : super(key: key);
 
   final Adventure adventure;
-
 
   @override
   _NPCgeneratorPageState createState() => _NPCgeneratorPageState(adventure);
@@ -45,24 +46,20 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
       test2.add(Stat(key, false));
     });
 */
-    List<DropdownMenuItem> dropdownStatList = adventure.maxStats.keys
+    List<CheckboxListTile> dropdownStatList = adventure.maxStats.keys
         .toList()
-        .map((val) => DropdownMenuItem(
-              value: val,
-              child: Row(
-                children: <Widget>[
-                  Checkbox(
-                    onChanged: (bool check) {
-                      setState(() {
-                        priorityStats[val] = check;
-                        // val.setCheck(value);
-                      });
-                    },
-                    value: priorityStats[val],
-                  ),
-                  Text(val),
-                ],
-              ),
+        .map((val) => CheckboxListTile(
+              value: priorityStats[val],
+              title: Text(val),
+              controlAffinity: ListTileControlAffinity.leading,
+              onChanged: (checked) {
+                setState(() {
+                  priorityStats[val] = checked;
+                });
+                super.setState(() {
+                  priorityStats[val] = checked;
+                });
+              },
             ))
         .toList();
 
@@ -101,7 +98,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
 
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text("AdventureCustomizer"),
+        title: Text("NPC Generator"),
       ),
       body: Center(
         child: Column(
@@ -164,10 +161,42 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
               ),
             if ((dropdownGenType == NPCGENSTATS ||
                 dropdownGenType == NPCGENSKILLPOINTSSTATS))
-              DropdownButton(
-                value: dropdownStat,
-                onChanged: (val) => setState(() => dropdownStat = val),
-                items: dropdownStatList,
+              Container(
+                //  width: 100,
+                //  height: 40,
+
+                child: RaisedButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return AlertDialog(
+                                title: Text('Select primary stats'),
+                                contentPadding: EdgeInsets.only(top: 12.0),
+                                content: SingleChildScrollView(
+                                  child: ListTileTheme(
+                                    contentPadding: EdgeInsets.fromLTRB(
+                                        14.0, 0.0, 24.0, 0.0),
+                                    child: ListBody(
+                                      children: dropdownStatList,
+                                      //children: [
+                                      // Text(contentText),
+                                      // ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        });
+                  },
+
+                  child: const Text('Primary stats',
+                      style: TextStyle(fontSize: 15)),
+                  //  padding:const EdgeInsets.all(0.0) ,
+                ),
               ),
             RaisedButton(
               onPressed: () {

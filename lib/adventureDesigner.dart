@@ -8,7 +8,10 @@ import 'package:game_master_companion_app/adventure.dart';
 import 'package:game_master_companion_app/eventGenerator.dart';
 
 import 'DBProvider.dart';
+import 'NPC.dart';
+import 'event.dart';
 import 'npcGenerator.dart';
+import 'storyPoint.dart';
 
 class AdventureDesigner extends StatefulWidget {
   AdventureDesigner({Key key, @required this.adventure}) : super(key: key);
@@ -221,6 +224,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       ),
       title: Text('Adventure Designer'),
     );
+
     if (!isLoaded)
       loadGraph(adventure.getStoryPoints(), appBar.preferredSize.height,
           MediaQuery.of(context).padding.top);
@@ -228,6 +232,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
       setState(() {});
     });
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: appBar,
       body: Stack(
         alignment: Alignment.topLeft,
@@ -281,10 +286,10 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                                   ),
                             );
                           },
-              onWillAccept: (data) {
-                print("onWillAccept");
-                return true;
-              },
+                          onWillAccept: (data) {
+                            print("onWillAccept");
+                            return true;
+                          },
                           onLeave: (data) {
                             print("onLeave");
                           },
@@ -499,10 +504,11 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                           } else {
                             await DBProvider.db.updateData(storyPoint);
                           }
-                      });
-                      adventure.storyPoints.values.forEach((storyPoint) async {
-                        storyPoint.npcs.forEach((npc) async {
-                          if (npc.getID() == null) {
+                        });
+                        adventure.storyPoints.values
+                            .forEach((storyPoint) async {
+                          storyPoint.npcs.forEach((npc) async {
+                            if (npc.getID() == null) {
                               npc.setAdventureID(adventure.getID());
                               npc.setStoryPointID(storyPoint.getStoryPointId());
                               ++newNpcID;

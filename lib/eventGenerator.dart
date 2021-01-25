@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:game_master_companion_app/adventure.dart';
 
+import 'event.dart';
+
 class EventGenerator extends StatefulWidget {
   EventGenerator({Key key, @required this.adventure}) : super(key: key);
 

@@ -6,6 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
 
+import 'NPC.dart';
+import 'event.dart';
+import 'storyPoint.dart';
+
 class DBProvider {
   DBProvider._();
 

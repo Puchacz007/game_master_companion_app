@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_master_companion_app/AdventureLoader.dart';
 import 'package:game_master_companion_app/adventureCustomizer.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MyApp());
 }
 
@@ -86,6 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               height: 10,
             ),
+          /*
             RaisedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -98,6 +102,8 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.drive_folder_upload),
               label: Text("Create New Adventure based on pattern"),
             ),
+            */
+
             SizedBox(
               height: 10,
             ),
@@ -115,6 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SizedBox(
               height: 20,
             ),
+          /*
             RaisedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -126,6 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
               icon: Icon(Icons.add_circle_rounded),
               label: Text("Play adventure"),
             ),
+            */
           ],
         ),
         /*
