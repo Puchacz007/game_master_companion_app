@@ -51,7 +51,8 @@ class DBProvider {
           ")");
 
       await db.execute("CREATE TABLE EVENT ("
-          "name TEXT PRIMARY KEY,"
+          "id INTEGER PRIMARY KEY,"
+          "name TEXT,"
           "description TEXT,"
           "adventureID INTEGER"
           ")");
@@ -87,8 +88,8 @@ class DBProvider {
     } else if (data is StoryPoint) {
       name = "StoryPoint";
       //  result =await db.query(name, where: "id = ?", whereArgs: [data.id]);
-      await DBProvider.db
-          .addConnections(data.connections, data.id, data.adventureID);
+      /*await DBProvider.db
+          .addConnections(data.connections, data.id, data.adventureID);*/
     } else if (data is NPC) {
       name = "NPC";
       await DBProvider.db.addStats(data.stats, data.getID(), data.adventureID);
@@ -140,8 +141,13 @@ class DBProvider {
     final db = await database;
     for (int i = 0; i < data.length; ++i) {
       var targetID = data.elementAt(i);
-      await db.rawInsert(
-          'Insert Into CONNECTIONS ( ID,targetID,adventureID) Values($id,$targetID,$adventureID);');
+
+      var queryResult = await db.rawQuery(
+          'SELECT * FROM CONNECTIONS WHERE ID = $id AND targetID = $targetID AND adventureID = $adventureID');
+      if (queryResult.isEmpty) {
+        await db.rawInsert(
+            'Insert Into CONNECTIONS ( ID,targetID,adventureID) Values($id,$targetID,$adventureID);');
+      }
     }
   }
 
@@ -165,8 +171,8 @@ class DBProvider {
       //  result = await  db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is StoryPoint) {
       name = "StoryPoint";
-      await DBProvider.db
-          .updateConnections(data.connections, data.id, data.adventureID);
+      /*await DBProvider.db
+          .updateConnections(data.connections, data.id, data.adventureID);*/
       //  result =await db.query(name, where: "id = ?", whereArgs: [data.id]);
     } else if (data is NPC) {
       name = "NPC";
@@ -176,7 +182,7 @@ class DBProvider {
     } else if (data is Event) {
       name = "Event";
       var res = await db.update(name, data.toMap(),
-          where: "name = ?", whereArgs: [data.name]);
+          where: "name = ? AND id = ?", whereArgs: [data.name, data.id]);
       return res;
     }
     var res = await db
@@ -206,6 +212,14 @@ class DBProvider {
     var res = await db.rawQuery("SELECT MAX(id) as id FROM NPC");
     List<Adventure> list =
         res.isNotEmpty ? res.map((c) => Adventure.fromMap(c)).toList() : [];
+    return list.first.id != null ? list.first.id : -1;
+  }
+
+  getMaxEventID() async {
+    final db = await database;
+    var res = await db.rawQuery("SELECT MAX(id) as id FROM EVENT");
+    List<Event> list =
+        res.isNotEmpty ? res.map((c) => Event.fromMap(c)).toList() : [];
     return list.first.id != null ? list.first.id : -1;
   }
 
@@ -298,16 +312,14 @@ class DBProvider {
     return res.isNotEmpty ? StoryPoint.fromMap(res.first) : Null;
   }
 
-  deleteStoryNode(int id) async // TODO bugged
-  {
+  deleteStoryNode(int id) async {
     final db = await database;
     await db.delete("Connections",
         where: "ID = ? OR targetID = ?", whereArgs: [id, id]);
     await db.delete("StoryPoint", where: "id = ?", whereArgs: [id]);
-    var res = await db
-        .query("StoryPoint", where: "storyPointID = ?", whereArgs: [id]);
-    List<StoryPoint> list =
-        res.isNotEmpty ? res.map((c) => StoryPoint.fromMap(c)).toList() : [];
+    var res = await db.query("NPC", where: "storyPointID = ?", whereArgs: [id]);
+    List<NPC> list =
+        res.isNotEmpty ? res.map((c) => NPC.fromMap(c)).toList() : [];
     await db.delete("NPC", where: "storyPointID = ?", whereArgs: [id]);
     list.forEach((element) async {
       await db

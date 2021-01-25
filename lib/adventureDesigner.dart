@@ -112,7 +112,8 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
     adventure.storyPoints.forEach((key, value) {
       if (key != index) value.deleteConnection(index);
     });
-    DBProvider.db.deleteStoryNode(adventure.storyPoints[index].getID());
+   if (adventure.storyPoints[index].getID() != null)
+      DBProvider.db.deleteStoryNode(adventure.storyPoints[index].getID());
 
     adventure.storyPoints.removeWhere((key, value) => key == index);
     dynamicPlotPointsList.remove(dynamicPlotPoint);
@@ -375,16 +376,31 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     //  height: 40,
                     child: RaisedButton(
                       onPressed: () {
-                        List<NPC> allNpcs = adventure.getAllNPC();
+                        Map<int, List<NPC>> allNpcs = adventure.getAllNPC();
                         dynamicNPCWidgetList.clear();
-                        for (int i = 0; i < allNpcs.length; ++i) {
+                        bool first = true;
+                        int npcNumber = 0;
+                        allNpcs.forEach((storyPointNumber, npcs) {
+                          for (int i = 0; i < npcs.length; ++i) {
+                            if (first)
+                              dynamicNPCWidgetList.add(DynamicNPCWidget(true,
+                                  npcs[i].stats, npcNumber, storyPointNumber));
+                            else
+                              dynamicNPCWidgetList.add(DynamicNPCWidget(false,
+                                  npcs[i].stats, npcNumber, storyPointNumber));
+                            ++npcNumber;
+                            first = false;
+                          }
+                        });
+
+                        /*
                           if (i == 0)
                             dynamicNPCWidgetList.add(
-                                DynamicNPCWidget(true, allNpcs[i].stats, i));
+                                DynamicNPCWidget(true, allNpcs[i], i,allNpcs[i]));
                           else
                             dynamicNPCWidgetList.add(
                                 DynamicNPCWidget(false, allNpcs[i].stats, i));
-                        }
+                        */
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -456,6 +472,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         int newStoryPointID =
                             await DBProvider.db.getMaxStoryID() + 1;
                         int newNpcID = await DBProvider.db.getMaxNPCID();
+                        int newEventID = await DBProvider.db.getMaxEventID();
 
                         adventure.npcs.forEach((npc) async {
                           if (npc.getID() == null) {
@@ -467,10 +484,10 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                             await DBProvider.db.updateData(npc);
                           }
                         });
-                        for (int i = 0; i < dynamicPlotPointsList.length; ++i) {
-                          adventure.storyPoints[i]
-                              .setNote(dynamicPlotPointsList[i].noteText.text);
-                        }
+                        dynamicPlotPointsList.forEach((plotPoint) {
+                          adventure.storyPoints[plotPoint.index]
+                              .setNote(plotPoint.noteText.text);
+                        });
 
                         adventure.storyPoints.values
                             .forEach((storyPoint) async {
@@ -486,19 +503,31 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                       adventure.storyPoints.values.forEach((storyPoint) async {
                         storyPoint.npcs.forEach((npc) async {
                           if (npc.getID() == null) {
-                            npc.setAdventureID(adventure.getID());
-                            npc.setStoryPointID(storyPoint.getStoryPointId());
-                            ++newNpcID;
-                            npc.setID(newNpcID);
-                            await DBProvider.db.addData(npc);
-                          } else {
-                            await DBProvider.db.updateData(npc);
-                          }
+                              npc.setAdventureID(adventure.getID());
+                              npc.setStoryPointID(storyPoint.getStoryPointId());
+                              ++newNpcID;
+                              npc.setID(newNpcID);
+                              await DBProvider.db.addData(npc);
+                            } else {
+                              await DBProvider.db.updateData(npc);
+                            }
+                          });
                         });
-                      });
-                      adventure.events.forEach((event) async {
-                        if (event.adventureID == null) {
+                        adventure
+                            .getStoryPoints()
+                            .values
+                            .forEach((storyPoint) async {
+                          await DBProvider.db.addConnections(
+                              storyPoint
+                                  .saveConnections(adventure.getStoryPoints()),
+                              storyPoint.getID(),
+                              adventure.getID());
+                        });
+                        adventure.events.forEach((event) async {
+                          if (event.adventureID == null) {
                             event.setAdventureID(adventure.getID());
+                            ++newEventID;
+                            event.setID(newEventID);
                             await DBProvider.db.addData(event);
                           } else {
                             await DBProvider.db.updateData(event);
@@ -723,8 +752,9 @@ class DynamicNPCWidget extends StatelessWidget {
   final List<DynamicNPCStatWidget> npsStatValueWidgetList = [];
   final List<DynamicNPCStatWidget> npsStatNameWidgetList = [];
   final number;
+  final storyPointNumber;
 
-  DynamicNPCWidget(this.first, this.stats, this.number) {
+  DynamicNPCWidget(this.first, this.stats, this.number, this.storyPointNumber) {
     if (first) {
       /*
       stats.forEach((key, value) {
@@ -757,7 +787,9 @@ class DynamicNPCWidget extends StatelessWidget {
                 Text("value"),
               ],
             ),
-          Text("NPC number $number"),
+          if (storyPointNumber >= 0)
+            Text("NPC number $number from storyPoint $storyPointNumber"),
+          if (storyPointNumber < 0) Text("NPC number $number"),
           Column(
             children: npsStatValueWidgetList,
           ),

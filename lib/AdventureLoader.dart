@@ -108,28 +108,26 @@ class _AdventureLoaderState extends State<AdventureLoader> {
                   res = await DBProvider.db
                       .getAllAdventureStatsValues(adventures[choiceID].getID());
 
-                  for (int i = 0;
-                      i < adventures[choiceID].getStoryPoints().length;
-                      ++i) {
-                    adventures[choiceID].storyPoints[i].npcs.forEach((npc) {
+                  adventures[choiceID].getStoryPoints().keys.forEach((key) {
+                    adventures[choiceID].storyPoints[key].npcs.forEach((npc) {
                       npc.stats = new Map();
                       res.forEach((row) {
-                        if (row['id'] == npc.getID()) {
+                        if (row['NPCID'] == npc.getID()) {
                           npc.stats[row['name']] = row['value'];
                         }
                       });
                     });
-                    adventures[choiceID].storyPoints[i].connections = Set();
+                    adventures[choiceID].storyPoints[key].connections = Set();
                     res2.forEach((row) {
                       if (row['ID'] ==
-                          adventures[choiceID].storyPoints[i].getID()) {
+                          adventures[choiceID].storyPoints[key].getID()) {
                         adventures[choiceID]
-                            .storyPoints[i]
+                            .storyPoints[key]
                             .connections
                             .add(row['targetID']);
                       }
                     });
-                  }
+                  });
 
                   adventures[choiceID].npcs.forEach((npc) {
                     npc.stats = new Map();
@@ -138,6 +136,13 @@ class _AdventureLoaderState extends State<AdventureLoader> {
                         npc.stats[row['name']] = row['value'];
                       }
                     });
+                  });
+                  adventures[choiceID]
+                      .getStoryPoints()
+                      .values
+                      .forEach((storyPoint) {
+                    storyPoint
+                        .loadConnections(adventures[choiceID].getStoryPoints());
                   });
 
                   Navigator.push(

@@ -143,11 +143,13 @@ int getStatsNumber() {
     });
   }
 
-  List<NPC> getAllNPC() {
-    List<NPC> allNPCs = npcs;
-    for (int i = 0; i < storyPoints.length; ++i) {
-      allNPCs.addAll(storyPoints[i].getNpcs());
-    }
+  Map<int, List<NPC>> getAllNPC() {
+    Map<int, List<NPC>> allNPCs = Map();
+    List<NPC> adventureNPCs = npcs;
+    allNPCs[-1] = adventureNPCs;
+    storyPoints.forEach((key, value) {
+      allNPCs[key] = value.getNpcs();
+    });
     return allNPCs;
   }
 
@@ -179,6 +181,27 @@ class StoryPoint {
   StoryPoint.init(double x, double y) {
     this.x = x;
     this.y = y;
+  }
+
+  Set<int> saveConnections(Map<int, StoryPoint> map) {
+    Set<int> newConnections = Set();
+    connections.forEach((target) {
+      map.forEach((key, value) {
+        if (key == target) newConnections.add(value.getID());
+      });
+    });
+    return newConnections;
+  }
+
+  void loadConnections(Map<int, StoryPoint> map) {
+    Set<int> newConnections = Set();
+    connections.forEach((target) {
+      map.forEach((key, value) {
+        if (value.getID() == target) newConnections.add(key);
+      });
+    });
+    connections.clear();
+    connections.addAll(newConnections);
   }
 
   void setNote(String note) {
@@ -433,16 +456,22 @@ class Event {
   String description;
   String name;
   int adventureID;
+  int id;
 
-  Event({this.name, this.description, this.adventureID});
+  Event({this.id, this.name, this.description, this.adventureID});
 
   factory Event.fromMap(Map<String, dynamic> json) => Event(
+      id: json["id"],
       name: json["name"],
       description: json["description"],
       adventureID: json[" adventureID"]);
 
-  Map<String, dynamic> toMap() =>
-      {"name": name, "description": description, " adventureID": adventureID};
+  Map<String, dynamic> toMap() => {
+        "id": id,
+        "name": name,
+        "description": description,
+        " adventureID": adventureID
+      };
 
   Event eventFromJson(String str) {
     final jsonData = json.decode(str);
@@ -472,5 +501,13 @@ class Event {
 
   String getEventName() {
     return name;
+  }
+
+  void setID(int id) {
+    this.id = id;
+  }
+
+  int getID() {
+    return id;
   }
 }
