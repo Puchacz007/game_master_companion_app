@@ -164,8 +164,21 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
               Container(
                 //  width: 100,
                 //  height: 40,
-
-                child: RaisedButton(
+                child: Column(
+                  children: [
+                    Center(child: Text("Select primary stats")),
+                    ListTileTheme(
+                      contentPadding: EdgeInsets.fromLTRB(14.0, 0.0, 24.0, 0.0),
+                      child: ListBody(
+                        children: dropdownStatList,
+                        //children: [
+                        // Text(contentText),
+                        // ],
+                      ),
+                    ),
+                  ],
+                ),
+                /* child: RaisedButton(
                   onPressed: () {
                     showDialog(
                         context: context,
@@ -196,7 +209,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
                   child: const Text('Primary stats',
                       style: TextStyle(fontSize: 15)),
                   //  padding:const EdgeInsets.all(0.0) ,
-                ),
+                ),*/
               ),
             RaisedButton(
               onPressed: () {
