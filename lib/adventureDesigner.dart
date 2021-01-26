@@ -140,7 +140,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
     isLoaded = true;
     map.forEach((key, storyPoint) {
       dynamicPlotPointsList.insert(
-          key,
+          dynamicPlotPointsList.length,
           new DynamicWidget(
               storyPoint.getX(),
               storyPoint.getY(),
@@ -388,11 +388,19 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                         allNpcs.forEach((storyPointNumber, npcs) {
                           for (int i = 0; i < npcs.length; ++i) {
                             if (first)
-                              dynamicNPCWidgetList.add(DynamicNPCWidget(true,
-                                  npcs[i].stats, npcNumber, storyPointNumber));
+                              dynamicNPCWidgetList.add(DynamicNPCWidget(
+                                  true,
+                                  npcs[i].stats,
+                                  npcNumber,
+                                  storyPointNumber,
+                                  npcs[i].name));
                             else
-                              dynamicNPCWidgetList.add(DynamicNPCWidget(false,
-                                  npcs[i].stats, npcNumber, storyPointNumber));
+                              dynamicNPCWidgetList.add(DynamicNPCWidget(
+                                  false,
+                                  npcs[i].stats,
+                                  npcNumber,
+                                  storyPointNumber,
+                                  npcs[i].name));
                             ++npcNumber;
                             first = false;
                           }
@@ -466,6 +474,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                     ),
                   ),
                   Container(
+                    width: 100,
                     child: RaisedButton(
                       onPressed: () async {
                         if (adventure.getID() == null) {
@@ -759,8 +768,10 @@ class DynamicNPCWidget extends StatelessWidget {
   final List<DynamicNPCStatWidget> npsStatNameWidgetList = [];
   final number;
   final storyPointNumber;
+  final name;
 
-  DynamicNPCWidget(this.first, this.stats, this.number, this.storyPointNumber) {
+  DynamicNPCWidget(
+      this.first, this.stats, this.number, this.storyPointNumber, this.name) {
     if (first) {
       /*
       stats.forEach((key, value) {
@@ -794,8 +805,19 @@ class DynamicNPCWidget extends StatelessWidget {
               ],
             ),
           if (storyPointNumber >= 0)
-            Text("NPC number $number from storyPoint $storyPointNumber"),
-          if (storyPointNumber < 0) Text("NPC number $number"),
+            Center(
+              child: Text(
+                "$name nr $number from storyPoint $storyPointNumber",
+                textAlign: TextAlign.center,
+              ),
+            ),
+          if (storyPointNumber < 0)
+            Center(
+              child: Text(
+                "$name nr $number",
+                textAlign: TextAlign.center,
+              ),
+            ),
           Column(
             children: npsStatValueWidgetList,
           ),

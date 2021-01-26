@@ -284,11 +284,17 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
               RaisedButton.icon(
                 onPressed: () {
                   int firstStatIndex = int.parse(dropdownNPCSaveNumber) *
-                      adventure.getStatsNumber() +
+                          adventure.getStatsNumber() +
                       1 +
                       int.parse(dropdownNPCSaveNumber);
+                  int temp = firstStatIndex;
                   int endLoop = firstStatIndex + adventure.getStatsNumber();
                   for (; firstStatIndex < endLoop; firstStatIndex++) {
+                    if (temp == firstStatIndex)
+                      npcs[int.parse(dropdownNPCSaveNumber)].setName(
+                          dynamicStatsWidgetList[firstStatIndex - 1]
+                              .nameController
+                              .text);
                     npcs[int.parse(dropdownNPCSaveNumber)].changeStatValue(
                         dynamicStatsWidgetList[firstStatIndex].statName,
                         int.parse(dynamicStatsWidgetList[firstStatIndex]
@@ -322,6 +328,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
 
 class DynamicListStatGen extends StatelessWidget {
   final TextEditingController statValueController = new TextEditingController();
+  final TextEditingController nameController = new TextEditingController();
   final String statName;
   final int number;
 
@@ -349,6 +356,7 @@ class DynamicListStatGen extends StatelessWidget {
         trailing: Container(
           width: 30,
           child: TextField(
+            autofocus: false,
             keyboardType: TextInputType.number,
             inputFormatters: <TextInputFormatter>[
               FilteringTextInputFormatter.digitsOnly
@@ -366,7 +374,18 @@ class DynamicListStatGen extends StatelessWidget {
       );
     else
       return Center(
-        child: Text("NPC $number"),
+        child: Container(
+          width: 100,
+          child: TextField(
+            autofocus: false,
+            maxLength: 20,
+            maxLengthEnforced: true,
+            controller: nameController,
+            // textAlign: TextAlign.left ,
+            decoration: InputDecoration(counterText: "", hintText: "npc name"),
+          ),
+        ),
+        //Text("NPC $number"),
       );
   }
 }

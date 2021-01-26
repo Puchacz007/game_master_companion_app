@@ -72,6 +72,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
                   // height: 21,
                   alignment: Alignment.center,
                   child: TextField(
+                    autofocus: false,
                     textAlign: TextAlign.center,
                     // keyboardType: TextInputType.name,
                     // maxLength: 3,
@@ -210,11 +211,13 @@ class DynamicList extends StatelessWidget {
         width: 200,
         // height: 21,
         child: TextField(
+          autofocus: false,
           // keyboardType: TextInputType.name,
           //maxLength: 3,
           // maxLengthEnforced: true,
           maxLengthEnforced: true,
-          maxLength: 22, // not working because flutter is bugged :P
+          maxLength: 22,
+          // not working because flutter is bugged :P
           controller: statNameController,
 
           decoration: InputDecoration(
@@ -228,6 +231,7 @@ class DynamicList extends StatelessWidget {
       trailing: Container(
         width: 30,
         child: TextField(
+          autofocus: false,
           keyboardType: TextInputType.number,
           inputFormatters: <TextInputFormatter>[
             FilteringTextInputFormatter.digitsOnly

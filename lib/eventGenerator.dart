@@ -45,6 +45,7 @@ class _EventGeneratorState extends State<EventGenerator> {
                 width: 200,
                 alignment: Alignment.center,
                 child: TextFormField(
+                  autofocus: false,
                   textAlign: TextAlign.center,
                   maxLength: 20,
                   maxLengthEnforced: true,

@@ -124,6 +124,10 @@ class NPC {
     }
   }
 
+  void setName(String name) {
+    this.name = name;
+  }
+
   void changeStatValue(String name, int value) {
     stats[name] = value;
   }
