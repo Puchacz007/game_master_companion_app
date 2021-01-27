@@ -89,7 +89,7 @@ class _NPCgeneratorPageState extends State<NPCgeneratorPage> {
         .toList();
 
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      //resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),

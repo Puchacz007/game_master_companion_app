@@ -42,7 +42,7 @@ class _AdventureCustomizerState extends State<AdventureCustomizer> {
     // than having to individually change instances of widgets.
 
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      //resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
