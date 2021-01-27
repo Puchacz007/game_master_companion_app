@@ -183,6 +183,7 @@ class _AdventureDesignerState extends State<AdventureDesigner> {
                   connectPlotPoints,
                   index,
                   deletePlotPoint));
+          dynamicPlotPointsList[index].noteText.text = element.noteText.text;
           dynamicPlotPointsList.remove(element);
 
           deleted = true;
@@ -736,7 +737,7 @@ class DynamicWidget extends StatelessWidget {
 
             width: 15,
             height: 15,
-            //color: Colors.red,
+            //color: Colors.red,f
             alignment: Alignment.centerRight,
             decoration:
                 BoxDecoration(color: Colors.red, shape: BoxShape.circle),
